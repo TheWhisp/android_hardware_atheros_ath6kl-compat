@@ -25,10 +25,8 @@
  *
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/acpi.h>
 #include <linux/acpi_io.h>
 #include <acpi/video.h>
@@ -355,11 +353,11 @@ static void intel_didl_outputs(struct drm_device *dev)
 	if (!handle || acpi_bus_get_device(handle, &acpi_dev))
 		return;
 
-	if (acpi_is_video_device(acpi_dev))
+	if (acpi_is_video_device(handle))
 		acpi_video_bus = acpi_dev;
 	else {
 		list_for_each_entry(acpi_cdev, &acpi_dev->children, node) {
-			if (acpi_is_video_device(acpi_cdev)) {
+			if (acpi_is_video_device(acpi_cdev->handle)) {
 				acpi_video_bus = acpi_cdev;
 				break;
 			}

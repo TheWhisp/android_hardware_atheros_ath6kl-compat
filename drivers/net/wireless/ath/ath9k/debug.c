@@ -41,7 +41,7 @@ static int ath9k_debugfs_release_buf(struct inode *inode, struct file *file)
 	return 0;
 }
 
-#ifdef CONFIG_ATH_DEBUG
+#ifdef CPTCFG_ATH_DEBUG
 
 static ssize_t read_file_debug(struct file *file, char __user *user_buf,
 			     size_t count, loff_t *ppos)
@@ -537,6 +537,7 @@ static ssize_t read_file_xmit(struct file *file, char __user *user_buf,
 	PR("AMPDUs Completed:", a_completed);
 	PR("AMPDUs Retried:  ", a_retries);
 	PR("AMPDUs XRetried: ", a_xretries);
+	PR("TXERR Filtered:  ", txerr_filtered);
 	PR("FIFO Underrun:   ", fifo_underrun);
 	PR("TXOP Exceeded:   ", xtxop);
 	PR("TXTIMER Expiry:  ", timer_exp);
@@ -756,6 +757,8 @@ void ath_debug_stat_tx(struct ath_softc *sc, struct ath_buf *bf,
 			TX_STAT_INC(qnum, completed);
 	}
 
+	if (ts->ts_status & ATH9K_TXERR_FILT)
+		TX_STAT_INC(qnum, txerr_filtered);
 	if (ts->ts_status & ATH9K_TXERR_FIFO)
 		TX_STAT_INC(qnum, fifo_underrun);
 	if (ts->ts_status & ATH9K_TXERR_XTXOP)
@@ -769,7 +772,7 @@ void ath_debug_stat_tx(struct ath_softc *sc, struct ath_buf *bf,
 	if (ts->ts_flags & ATH9K_TX_DELIM_UNDERRUN)
 		TX_STAT_INC(qnum, delim_underrun);
 
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 	spin_lock(&sc->debug.samp_lock);
 	TX_SAMP_DBG(jiffies) = jiffies;
 	TX_SAMP_DBG(rssi_ctl0) = ts->ts_rssi_ctl0;
@@ -937,7 +940,7 @@ void ath_debug_stat_rx(struct ath_softc *sc, struct ath_rx_status *rs)
 			RX_PHY_ERR_INC(rs->rs_phyerr);
 	}
 
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 	spin_lock(&sc->debug.samp_lock);
 	RX_SAMP_DBG(jiffies) = jiffies;
 	RX_SAMP_DBG(rssi_ctl0) = rs->rs_rssi_ctl0;
@@ -1214,7 +1217,11 @@ static const struct file_operations fops_spectral_fft_period = {
 
 static struct dentry *create_buf_file_handler(const char *filename,
 					      struct dentry *parent,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,3,0))
 					      umode_t mode,
+#else
+					      int mode,
+#endif
 					      struct rchan_buf *buf,
 					      int *is_global)
 {
@@ -1482,7 +1489,7 @@ static const struct file_operations fops_modal_eeprom = {
 	.llseek = default_llseek,
 };
 
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 
 void ath9k_debug_samp_bb_mac(struct ath_softc *sc)
 {
@@ -1759,7 +1766,7 @@ static const struct file_operations fops_samps = {
 
 #endif
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 static ssize_t read_file_btcoex(struct file *file, char __user *user_buf,
 				size_t count, loff_t *ppos)
 {
@@ -1909,6 +1916,7 @@ static const char ath9k_gstrings_stats[][ETH_GSTRING_LEN] = {
 	AMKSTR(d_tx_desc_cfg_err),
 	AMKSTR(d_tx_data_underrun),
 	AMKSTR(d_tx_delim_underrun),
+	"d_rx_crc_err",
 	"d_rx_decrypt_crc_err",
 	"d_rx_phy_err",
 	"d_rx_mic_err",
@@ -1989,6 +1997,7 @@ void ath9k_get_et_stats(struct ieee80211_hw *hw,
 	AWDATA(data_underrun);
 	AWDATA(delim_underrun);
 
+	AWDATA_RX(crc_err);
 	AWDATA_RX(decrypt_crc_err);
 	AWDATA_RX(phy_err);
 	AWDATA_RX(mic_err);
@@ -2003,6 +2012,14 @@ void ath9k_get_et_stats(struct ieee80211_hw *hw,
 	WARN_ON(i != ATH9K_SSTATS_LEN);
 }
 
+void ath9k_deinit_debug(struct ath_softc *sc)
+{
+	if (config_enabled(CPTCFG_ATH9K_DEBUGFS) && sc->rfs_chan_spec_scan) {
+		relay_close(sc->rfs_chan_spec_scan);
+		sc->rfs_chan_spec_scan = NULL;
+	}
+}
+
 int ath9k_init_debug(struct ath_hw *ah)
 {
 	struct ath_common *common = ath9k_hw_common(ah);
@@ -2013,7 +2030,7 @@ int ath9k_init_debug(struct ath_hw *ah)
 	if (!sc->debug.debugfs_phy)
 		return -ENOMEM;
 
-#ifdef CONFIG_ATH_DEBUG
+#ifdef CPTCFG_ATH_DEBUG
 	debugfs_create_file("debug", S_IRUSR | S_IWUSR, sc->debug.debugfs_phy,
 			    sc, &fops_debug);
 #endif
@@ -2067,7 +2084,7 @@ int ath9k_init_debug(struct ath_hw *ah)
 			    &fops_modal_eeprom);
 	sc->rfs_chan_spec_scan = relay_open("spectral_scan",
 					    sc->debug.debugfs_phy,
-					    262144, 4, &rfs_spec_scan_cb,
+					    1024, 256, &rfs_spec_scan_cb,
 					    NULL);
 	debugfs_create_file("spectral_scan_ctl", S_IRUSR | S_IWUSR,
 			    sc->debug.debugfs_phy, sc,
@@ -2083,7 +2100,7 @@ int ath9k_init_debug(struct ath_hw *ah)
 			    sc->debug.debugfs_phy, sc,
 			    &fops_spectral_fft_period);
 
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 	debugfs_create_file("samples", S_IRUSR, sc->debug.debugfs_phy, sc,
 			    &fops_samps);
 #endif
@@ -2093,7 +2110,7 @@ int ath9k_init_debug(struct ath_hw *ah)
 			   sc->debug.debugfs_phy, &sc->sc_ah->gpio_val);
 	debugfs_create_file("diversity", S_IRUSR | S_IWUSR,
 			    sc->debug.debugfs_phy, sc, &fops_ant_diversity);
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 	debugfs_create_file("btcoex", S_IRUSR, sc->debug.debugfs_phy, sc,
 			    &fops_btcoex);
 #endif

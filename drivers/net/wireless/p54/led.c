@@ -21,9 +21,9 @@
 #include <linux/etherdevice.h>
 
 #include <net/mac80211.h>
-#ifdef CONFIG_P54_LEDS
+#ifdef CPTCFG_P54_LEDS
 #include <linux/leds.h>
-#endif /* CONFIG_P54_LEDS */
+#endif /* CPTCFG_P54_LEDS */
 
 #include "p54.h"
 #include "lmac.h"

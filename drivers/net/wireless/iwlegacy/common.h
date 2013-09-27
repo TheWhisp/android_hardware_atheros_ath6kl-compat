@@ -541,10 +541,6 @@ struct il_frame {
 	struct list_head list;
 };
 
-#define SEQ_TO_SN(seq) (((seq) & IEEE80211_SCTL_SEQ) >> 4)
-#define SN_TO_SEQ(ssn) (((ssn) << 4) & IEEE80211_SCTL_SEQ)
-#define MAX_SN ((IEEE80211_SCTL_SEQ) >> 4)
-
 enum {
 	CMD_SYNC = 0,
 	CMD_SIZE_NORMAL = 0,
@@ -1066,7 +1062,7 @@ enum il_ctrl_stats {
 };
 
 struct traffic_stats {
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 	u32 mgmt[MANAGEMENT_MAX];
 	u32 ctrl[CONTROL_MAX];
 	u32 data_cnt;
@@ -1136,7 +1132,7 @@ struct il_priv {
 
 	struct il_cfg *cfg;
 	const struct il_ops *ops;
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 	const struct il_debugfs_ops *debugfs_ops;
 #endif
 
@@ -1321,7 +1317,7 @@ struct il_priv {
 	u64 timestamp;
 
 	union {
-#if defined(CONFIG_IWL3945) || defined(CONFIG_IWL3945_MODULE)
+#if defined(CPTCFG_IWL3945) || defined(CPTCFG_IWL3945_MODULE)
 		struct {
 			void *shared_virt;
 			dma_addr_t shared_phys;
@@ -1330,7 +1326,7 @@ struct il_priv {
 			struct delayed_work rfkill_poll;
 
 			struct il3945_notif_stats stats;
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 			struct il3945_notif_stats accum_stats;
 			struct il3945_notif_stats delta_stats;
 			struct il3945_notif_stats max_delta;
@@ -1352,7 +1348,7 @@ struct il_priv {
 
 		} _3945;
 #endif
-#if defined(CONFIG_COMPAT_IWL4965) || defined(CONFIG_COMPAT_IWL4965_MODULE)
+#if defined(CPTCFG_IWL4965) || defined(CPTCFG_IWL4965_MODULE)
 		struct {
 			struct il_rx_phy_res last_phy_res;
 			bool last_phy_res_valid;
@@ -1372,7 +1368,7 @@ struct il_priv {
 			struct il_wep_key wep_keys[WEP_KEYS_MAX];
 
 			struct il_notif_stats stats;
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 			struct il_notif_stats accum_stats;
 			struct il_notif_stats delta_stats;
 			struct il_notif_stats max_delta;
@@ -1409,12 +1405,12 @@ struct il_priv {
 	s8 tx_power_device_lmt;
 	s8 tx_power_next;
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	/* debugging info */
 	u32 debug_level;	/* per device debugging will override global
 				   il_debug_level if set */
-#endif				/* CONFIG_IWLEGACY_DEBUG */
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#endif				/* CPTCFG_IWLEGACY_DEBUG */
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 	/* debugfs */
 	u16 tx_traffic_idx;
 	u16 rx_traffic_idx;
@@ -1423,7 +1419,7 @@ struct il_priv {
 	struct dentry *debugfs_dir;
 	u32 dbgfs_sram_offset, dbgfs_sram_len;
 	bool disable_ht40;
-#endif				/* CONFIG_IWLEGACY_DEBUGFS */
+#endif				/* CPTCFG_IWLEGACY_DEBUGFS */
 
 	struct work_struct txpower_work;
 	u32 disable_sens_cal;
@@ -1531,7 +1527,7 @@ il_free_pages(struct il_priv *il, unsigned long page)
 #define IL_RX_BUF_SIZE_4K (4 * 1024)
 #define IL_RX_BUF_SIZE_8K (8 * 1024)
 
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 struct il_debugfs_ops {
 	ssize_t(*rx_stats_read) (struct file *file, char __user *user_buf,
 				 size_t count, loff_t *ppos);
@@ -1724,11 +1720,11 @@ void il_mac_remove_interface(struct ieee80211_hw *hw,
 			     struct ieee80211_vif *vif);
 int il_mac_change_interface(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 			    enum nl80211_iftype newtype, bool newp2p);
-void il_mac_flush(struct ieee80211_hw *hw, bool drop);
+void il_mac_flush(struct ieee80211_hw *hw, u32 queues, bool drop);
 int il_alloc_txq_mem(struct il_priv *il);
 void il_free_txq_mem(struct il_priv *il);
 
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 extern void il_update_stats(struct il_priv *il, bool is_tx, __le16 fc, u16 len);
 #else
 static inline void
@@ -1836,7 +1832,7 @@ u32 il_usecs_to_beacons(struct il_priv *il, u32 usec, u32 beacon_interval);
 __le32 il_add_beacon_time(struct il_priv *il, u32 base, u32 addon,
 			  u32 beacon_interval);
 
-#ifdef CONFIG_PM
+#ifdef CONFIG_PM_SLEEP
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,29))
 int il_pci_suspend_compat(struct pci_dev *pdev, pm_message_t state);
 int il_pci_resume_compat(struct pci_dev *pdev);
@@ -1848,17 +1844,17 @@ extern const struct dev_pm_ops il_pm_ops;
 
 #define IL_LEGACY_PM_OPS	(&il_pm_ops)
 
-#else /* !CONFIG_PM */
+#else /* !CONFIG_PM_SLEEP */
 
 #define IL_LEGACY_PM_OPS	NULL
 
-#endif /* !CONFIG_PM */
+#endif /* !CONFIG_PM_SLEEP */
 
 /*****************************************************
 *  Error Handling Debugging
 ******************************************************/
 void il4965_dump_nic_error_log(struct il_priv *il);
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 void il_print_rx_config_cmd(struct il_priv *il);
 #else
 static inline void
@@ -2242,9 +2238,8 @@ il_alloc_fw_desc(struct pci_dev *pci_dev, struct fw_desc *desc)
 		return -EINVAL;
 	}
 
-	desc->v_addr =
-	    dma_alloc_coherent(&pci_dev->dev, desc->len, &desc->p_addr,
-			       GFP_KERNEL);
+	desc->v_addr = dma_alloc_coherent(&pci_dev->dev, desc->len,
+					  &desc->p_addr, GFP_KERNEL);
 	return (desc->v_addr != NULL) ? 0 : -ENOMEM;
 }
 
@@ -2790,7 +2785,7 @@ struct il_lq_sta {
 	struct il_scale_tbl_info lq_info[LQ_SIZE];	/* "active", "search" */
 	struct il_traffic_load load[TID_MAX_LOAD_COUNT];
 	u8 tx_agg_tid_en;
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct dentry *rs_sta_dbgfs_scale_table_file;
 	struct dentry *rs_sta_dbgfs_stats_table_file;
 	struct dentry *rs_sta_dbgfs_rate_scale_data_file;
@@ -2882,7 +2877,7 @@ extern void il_power_initialize(struct il_priv *il);
 
 extern u32 il_debug_level;
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 /*
  * il_get_debug_level: Return active debug level for device
  *
@@ -2912,7 +2907,7 @@ do {									\
 		       DUMP_PREFIX_OFFSET, 16, 1, p, len, 1);		\
 } while (0)
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 #define IL_DBG(level, fmt, args...)					\
 do {									\
 	if (il_get_debug_level(il) & level)				\
@@ -2933,9 +2928,9 @@ static inline void
 il_print_hex_dump(struct il_priv *il, int level, const void *p, u32 len)
 {
 }
-#endif /* CONFIG_IWLEGACY_DEBUG */
+#endif /* CPTCFG_IWLEGACY_DEBUG */
 
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 int il_dbgfs_register(struct il_priv *il, const char *name);
 void il_dbgfs_unregister(struct il_priv *il);
 #else
@@ -2949,7 +2944,7 @@ static inline void
 il_dbgfs_unregister(struct il_priv *il)
 {
 }
-#endif /* CONFIG_IWLEGACY_DEBUGFS */
+#endif /* CPTCFG_IWLEGACY_DEBUGFS */
 
 /*
  * To use the debug system:
@@ -2971,7 +2966,7 @@ il_dbgfs_unregister(struct il_priv *il)
  *	/sys/module/iwl3945/parameters/debug
  *	/sys/class/net/wlan0/device/debug_level
  *
- * when CONFIG_IWLEGACY_DEBUG=y.
+ * when CPTCFG_IWLEGACY_DEBUG=y.
  */
 
 /* 0x0000000F - 0x00000001 */

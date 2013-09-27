@@ -114,7 +114,7 @@
 #define DRIVER_PATCHLEVEL	0
 
 /* The rest of the file is DEPRECATED! */
-#ifdef CONFIG_DRM_RADEON_UMS
+#ifdef CPTCFG_DRM_RADEON_UMS
 
 enum radeon_cp_microcode_version {
 	UCODE_R100,
@@ -2159,6 +2159,6 @@ extern void radeon_commit_ring(drm_radeon_private_t *dev_priv);
 } while (0)
 
 
-#endif				/* CONFIG_DRM_RADEON_UMS */
+#endif				/* CPTCFG_DRM_RADEON_UMS */
 
 #endif				/* __RADEON_DRV_H__ */

@@ -330,7 +330,7 @@ static int lib80211_ccmp_decrypt(struct sk_buff *skb, int hdr_len, void *priv)
 	pos += 8;
 
 	if (ccmp_replay_check(pn, key->rx_pn)) {
-#ifdef CONFIG_LIB80211_DEBUG
+#ifdef CPTCFG_LIB80211_DEBUG
 		net_dbg_ratelimited("CCMP: replay detected: STA=%pM previous PN %02x%02x%02x%02x%02x%02x received PN %02x%02x%02x%02x%02x%02x\n",
 				    hdr->addr2,
 				    key->rx_pn[0], key->rx_pn[1], key->rx_pn[2],
@@ -430,24 +430,23 @@ static int lib80211_ccmp_get_key(void *key, int len, u8 * seq, void *priv)
 	return CCMP_TK_LEN;
 }
 
-static char *lib80211_ccmp_print_stats(char *p, void *priv)
+static void lib80211_ccmp_print_stats(struct seq_file *m, void *priv)
 {
 	struct lib80211_ccmp_data *ccmp = priv;
 
-	p += sprintf(p, "key[%d] alg=CCMP key_set=%d "
-		     "tx_pn=%02x%02x%02x%02x%02x%02x "
-		     "rx_pn=%02x%02x%02x%02x%02x%02x "
-		     "format_errors=%d replays=%d decrypt_errors=%d\n",
-		     ccmp->key_idx, ccmp->key_set,
-		     ccmp->tx_pn[0], ccmp->tx_pn[1], ccmp->tx_pn[2],
-		     ccmp->tx_pn[3], ccmp->tx_pn[4], ccmp->tx_pn[5],
-		     ccmp->rx_pn[0], ccmp->rx_pn[1], ccmp->rx_pn[2],
-		     ccmp->rx_pn[3], ccmp->rx_pn[4], ccmp->rx_pn[5],
-		     ccmp->dot11RSNAStatsCCMPFormatErrors,
-		     ccmp->dot11RSNAStatsCCMPReplays,
-		     ccmp->dot11RSNAStatsCCMPDecryptErrors);
-
-	return p;
+	seq_printf(m,
+		   "key[%d] alg=CCMP key_set=%d "
+		   "tx_pn=%02x%02x%02x%02x%02x%02x "
+		   "rx_pn=%02x%02x%02x%02x%02x%02x "
+		   "format_errors=%d replays=%d decrypt_errors=%d\n",
+		   ccmp->key_idx, ccmp->key_set,
+		   ccmp->tx_pn[0], ccmp->tx_pn[1], ccmp->tx_pn[2],
+		   ccmp->tx_pn[3], ccmp->tx_pn[4], ccmp->tx_pn[5],
+		   ccmp->rx_pn[0], ccmp->rx_pn[1], ccmp->rx_pn[2],
+		   ccmp->rx_pn[3], ccmp->rx_pn[4], ccmp->rx_pn[5],
+		   ccmp->dot11RSNAStatsCCMPFormatErrors,
+		   ccmp->dot11RSNAStatsCCMPReplays,
+		   ccmp->dot11RSNAStatsCCMPDecryptErrors);
 }
 
 static struct lib80211_crypto_ops lib80211_crypt_ccmp = {

@@ -304,7 +304,7 @@ static struct sock *rfcomm_sock_alloc(struct net *net, struct socket *sock, int 
 	return sk;
 }
 
-#if defined(CONFIG_COMPAT_BT_SOCK_CREATE_NEEDS_KERN)
+#if defined(CPTCFG_BACKPORT_OPTION_BT_SOCK_CREATE_NEEDS_KERN)
 static int rfcomm_sock_create(struct net *net, struct socket *sock,
 			      int protocol, int kern)
 #else
@@ -613,6 +613,7 @@ static int rfcomm_sock_recvmsg(struct kiocb *iocb, struct socket *sock,
 
 	if (test_and_clear_bit(RFCOMM_DEFER_SETUP, &d->flags)) {
 		rfcomm_dlc_accept(d);
+		msg->msg_namelen = 0;
 		return 0;
 	}
 
@@ -869,7 +870,7 @@ static int rfcomm_sock_ioctl(struct socket *sock, unsigned int cmd, unsigned lon
 	err = bt_sock_ioctl(sock, cmd, arg);
 
 	if (err == -ENOIOCTLCMD) {
-#ifdef CONFIG_COMPAT_BT_RFCOMM_TTY
+#ifdef CPTCFG_BT_RFCOMM_TTY
 		lock_sock(sk);
 		err = rfcomm_dev_ioctl(sk, cmd, (void __user *) arg);
 		release_sock(sk);
@@ -1045,7 +1046,7 @@ int __init rfcomm_init_sockets(void)
 		goto error;
 	}
 
-	err = bt_procfs_init(THIS_MODULE, &init_net, "rfcomm", &rfcomm_sk_list, NULL);
+	err = bt_procfs_init(&init_net, "rfcomm", &rfcomm_sk_list, NULL);
 	if (err < 0) {
 		BT_ERR("Failed to create RFCOMM proc file");
 		bt_sock_unregister(BTPROTO_RFCOMM);
@@ -1074,8 +1075,7 @@ void __exit rfcomm_cleanup_sockets(void)
 
 	debugfs_remove(rfcomm_sock_debugfs);
 
-	if (bt_sock_unregister(BTPROTO_RFCOMM) < 0)
-		BT_ERR("RFCOMM socket layer unregistration failed");
+	bt_sock_unregister(BTPROTO_RFCOMM);
 
 	proto_unregister(&rfcomm_proto);
 }

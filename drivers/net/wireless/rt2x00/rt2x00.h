@@ -54,47 +54,36 @@
 #define DRV_VERSION	"2.3.0"
 #define DRV_PROJECT	"http://rt2x00.serialmonkey.com"
 
-/*
- * Debug definitions.
+/* Debug definitions.
  * Debug output has to be enabled during compile time.
  */
-#define DEBUG_PRINTK_MSG(__dev, __kernlvl, __lvl, __msg, __args...)	\
-	printk(__kernlvl "%s -> %s: %s - " __msg,			\
-	       wiphy_name((__dev)->hw->wiphy), __func__, __lvl, ##__args)
+#ifdef CPTCFG_RT2X00_DEBUG
+#define DEBUG
+#endif /* CPTCFG_RT2X00_DEBUG */
 
-#define DEBUG_PRINTK_PROBE(__kernlvl, __lvl, __msg, __args...)	\
-	printk(__kernlvl "%s -> %s: %s - " __msg,		\
-	       KBUILD_MODNAME, __func__, __lvl, ##__args)
-
-#ifdef CONFIG_RT2X00_DEBUG
-#define DEBUG_PRINTK(__dev, __kernlvl, __lvl, __msg, __args...)	\
-	DEBUG_PRINTK_MSG(__dev, __kernlvl, __lvl, __msg, ##__args)
-#else
-#define DEBUG_PRINTK(__dev, __kernlvl, __lvl, __msg, __args...)	\
-	do { } while (0)
-#endif /* CONFIG_RT2X00_DEBUG */
-
-/*
- * Various debug levels.
- * The debug levels PANIC and ERROR both indicate serious problems,
- * for this reason they should never be ignored.
- * The special ERROR_PROBE message is for messages that are generated
- * when the rt2x00_dev is not yet initialized.
+/* Utility printing macros
+ * rt2x00_probe_err is for messages when rt2x00_dev is uninitialized
  */
-#define PANIC(__dev, __msg, __args...) \
-	DEBUG_PRINTK_MSG(__dev, KERN_CRIT, "Panic", __msg, ##__args)
-#define ERROR(__dev, __msg, __args...)	\
-	DEBUG_PRINTK_MSG(__dev, KERN_ERR, "Error", __msg, ##__args)
-#define ERROR_PROBE(__msg, __args...) \
-	DEBUG_PRINTK_PROBE(KERN_ERR, "Error", __msg, ##__args)
-#define WARNING(__dev, __msg, __args...) \
-	DEBUG_PRINTK_MSG(__dev, KERN_WARNING, "Warning", __msg, ##__args)
-#define INFO(__dev, __msg, __args...) \
-	DEBUG_PRINTK_MSG(__dev, KERN_INFO, "Info", __msg, ##__args)
-#define DEBUG(__dev, __msg, __args...) \
-	DEBUG_PRINTK(__dev, KERN_DEBUG, "Debug", __msg, ##__args)
-#define EEPROM(__dev, __msg, __args...) \
-	DEBUG_PRINTK(__dev, KERN_DEBUG, "EEPROM recovery", __msg, ##__args)
+#define rt2x00_probe_err(fmt, ...)					\
+	printk(KERN_ERR KBUILD_MODNAME ": %s: Error - " fmt,		\
+	       __func__, ##__VA_ARGS__)
+#define rt2x00_err(dev, fmt, ...)					\
+	wiphy_err((dev)->hw->wiphy, "%s: Error - " fmt,			\
+		  __func__, ##__VA_ARGS__)
+#define rt2x00_warn(dev, fmt, ...)					\
+	wiphy_warn((dev)->hw->wiphy, "%s: Warning - " fmt,		\
+		   __func__, ##__VA_ARGS__)
+#define rt2x00_info(dev, fmt, ...)					\
+	wiphy_info((dev)->hw->wiphy, "%s: Info - " fmt,			\
+		   __func__, ##__VA_ARGS__)
+
+/* Various debug levels */
+#define rt2x00_dbg(dev, fmt, ...)					\
+	wiphy_dbg((dev)->hw->wiphy, "%s: Debug - " fmt,			\
+		  __func__, ##__VA_ARGS__)
+#define rt2x00_eeprom_dbg(dev, fmt, ...)				\
+	wiphy_dbg((dev)->hw->wiphy, "%s: EEPROM recovery - " fmt,	\
+		  __func__, ##__VA_ARGS__)
 
 /*
  * Duration calculations
@@ -193,6 +182,7 @@ struct rt2x00_chip {
 #define RT3883		0x3883	/* WSOC */
 #define RT5390		0x5390  /* 2.4GHz */
 #define RT5392		0x5392  /* 2.4GHz */
+#define RT5592		0x5592
 
 	u16 rf;
 	u16 rev;
@@ -666,9 +656,9 @@ struct rt2x00_ops {
 	const struct rt2x00lib_ops *lib;
 	const void *drv;
 	const struct ieee80211_ops *hw;
-#ifdef CONFIG_RT2X00_LIB_DEBUGFS
+#ifdef CPTCFG_RT2X00_LIB_DEBUGFS
 	const struct rt2x00debug *debugfs;
-#endif /* CONFIG_RT2X00_LIB_DEBUGFS */
+#endif /* CPTCFG_RT2X00_LIB_DEBUGFS */
 };
 
 /*
@@ -781,20 +771,20 @@ struct rt2x00_dev {
 	 * If enabled, the debugfs interface structures
 	 * required for deregistration of debugfs.
 	 */
-#ifdef CONFIG_RT2X00_LIB_DEBUGFS
+#ifdef CPTCFG_RT2X00_LIB_DEBUGFS
 	struct rt2x00debug_intf *debugfs_intf;
-#endif /* CONFIG_RT2X00_LIB_DEBUGFS */
+#endif /* CPTCFG_RT2X00_LIB_DEBUGFS */
 
 	/*
 	 * LED structure for changing the LED status
 	 * by mac8011 or the kernel.
 	 */
-#ifdef CONFIG_RT2X00_LIB_LEDS
+#ifdef CPTCFG_RT2X00_LIB_LEDS
 	struct rt2x00_led led_radio;
 	struct rt2x00_led led_assoc;
 	struct rt2x00_led led_qual;
 	u16 led_mcu_reg;
-#endif /* CONFIG_RT2X00_LIB_LEDS */
+#endif /* CPTCFG_RT2X00_LIB_LEDS */
 
 	/*
 	 * Device state flags.
@@ -1064,8 +1054,7 @@ static inline void rt2x00_rf_write(struct rt2x00_dev *rt2x00dev,
 }
 
 /*
- *  Generic EEPROM access.
- * The EEPROM is being accessed by word index.
+ * Generic EEPROM access. The EEPROM is being accessed by word or byte index.
  */
 static inline void *rt2x00_eeprom_addr(struct rt2x00_dev *rt2x00dev,
 				       const unsigned int word)
@@ -1085,6 +1074,12 @@ static inline void rt2x00_eeprom_write(struct rt2x00_dev *rt2x00dev,
 	rt2x00dev->eeprom[word] = cpu_to_le16(data);
 }
 
+static inline u8 rt2x00_eeprom_byte(struct rt2x00_dev *rt2x00dev,
+				    const unsigned int byte)
+{
+	return *(((u8 *)rt2x00dev->eeprom) + byte);
+}
+
 /*
  * Chipset handlers
  */
@@ -1095,9 +1090,27 @@ static inline void rt2x00_set_chip(struct rt2x00_dev *rt2x00dev,
 	rt2x00dev->chip.rf = rf;
 	rt2x00dev->chip.rev = rev;
 
-	INFO(rt2x00dev,
-	     "Chipset detected - rt: %04x, rf: %04x, rev: %04x.\n",
-	     rt2x00dev->chip.rt, rt2x00dev->chip.rf, rt2x00dev->chip.rev);
+	rt2x00_info(rt2x00dev, "Chipset detected - rt: %04x, rf: %04x, rev: %04x\n",
+		    rt2x00dev->chip.rt, rt2x00dev->chip.rf,
+		    rt2x00dev->chip.rev);
+}
+
+static inline void rt2x00_set_rt(struct rt2x00_dev *rt2x00dev,
+				 const u16 rt, const u16 rev)
+{
+	rt2x00dev->chip.rt = rt;
+	rt2x00dev->chip.rev = rev;
+
+	rt2x00_info(rt2x00dev, "RT chipset %04x, rev %04x detected\n",
+		    rt2x00dev->chip.rt, rt2x00dev->chip.rev);
+}
+
+static inline void rt2x00_set_rf(struct rt2x00_dev *rt2x00dev, const u16 rf)
+{
+	rt2x00dev->chip.rf = rf;
+
+	rt2x00_info(rt2x00dev, "RF chipset %04x detected\n",
+		    rt2x00dev->chip.rf);
 }
 
 static inline bool rt2x00_rt(struct rt2x00_dev *rt2x00dev, const u16 rt)
@@ -1289,7 +1302,7 @@ void rt2x00queue_flush_queues(struct rt2x00_dev *rt2x00dev, bool drop);
  * @type: The type of frame that is being dumped.
  * @skb: The skb containing the frame to be dumped.
  */
-#ifdef CONFIG_RT2X00_LIB_DEBUGFS
+#ifdef CPTCFG_RT2X00_LIB_DEBUGFS
 void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
 			    enum rt2x00_dump_type type, struct sk_buff *skb);
 #else
@@ -1298,7 +1311,7 @@ static inline void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
 					  struct sk_buff *skb)
 {
 }
-#endif /* CONFIG_RT2X00_LIB_DEBUGFS */
+#endif /* CPTCFG_RT2X00_LIB_DEBUGFS */
 
 /*
  * Utility functions.
@@ -1337,13 +1350,13 @@ void rt2x00mac_configure_filter(struct ieee80211_hw *hw,
 				u64 multicast);
 int rt2x00mac_set_tim(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
 		      bool set);
-#ifdef CONFIG_RT2X00_LIB_CRYPTO
+#ifdef CPTCFG_RT2X00_LIB_CRYPTO
 int rt2x00mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
 		      struct ieee80211_vif *vif, struct ieee80211_sta *sta,
 		      struct ieee80211_key_conf *key);
 #else
 #define rt2x00mac_set_key	NULL
-#endif /* CONFIG_RT2X00_LIB_CRYPTO */
+#endif /* CPTCFG_RT2X00_LIB_CRYPTO */
 int rt2x00mac_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		      struct ieee80211_sta *sta);
 int rt2x00mac_sta_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
@@ -1360,7 +1373,7 @@ int rt2x00mac_conf_tx(struct ieee80211_hw *hw,
 		      struct ieee80211_vif *vif, u16 queue,
 		      const struct ieee80211_tx_queue_params *params);
 void rt2x00mac_rfkill_poll(struct ieee80211_hw *hw);
-void rt2x00mac_flush(struct ieee80211_hw *hw, bool drop);
+void rt2x00mac_flush(struct ieee80211_hw *hw, u32 queues, bool drop);
 int rt2x00mac_set_antenna(struct ieee80211_hw *hw, u32 tx_ant, u32 rx_ant);
 int rt2x00mac_get_antenna(struct ieee80211_hw *hw, u32 *tx_ant, u32 *rx_ant);
 void rt2x00mac_get_ringparam(struct ieee80211_hw *hw,

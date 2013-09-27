@@ -1,8 +1,9 @@
 config P54_COMMON
 	tristate "Softmac Prism54 support"
+	depends on m
 	depends on MAC80211
-	select FW_LOADER
-	select CRC_CCITT
+	select BACKPORT_FW_LOADER
+	depends on CRC_CCITT
 	---help---
 	  This is common code for isl38xx/stlc45xx based modules.
 	  This module does nothing by itself - the USB/PCI/SPI front-ends
@@ -15,8 +16,9 @@ config P54_COMMON
 
 config P54_USB
 	tristate "Prism54 USB support"
+	depends on m
 	depends on P54_COMMON && USB
-	select CRC32
+	depends on CRC32
 	---help---
 	  This driver is for USB isl38xx based wireless cards.
 
@@ -27,6 +29,7 @@ config P54_USB
 
 config P54_PCI
 	tristate "Prism54 PCI support"
+	depends on m
 	depends on P54_COMMON && PCI
 	---help---
 	  This driver is for PCI isl38xx based wireless cards.
@@ -40,7 +43,9 @@ config P54_PCI
 	  If you choose to build a module, it'll be called p54pci.
 
 config P54_SPI
+	depends on !BACKPORT_KERNEL_2_6_25
 	tristate "Prism54 SPI (stlc45xx) support"
+	depends on m
 	depends on P54_COMMON && SPI_MASTER && GENERIC_HARDIRQS
 	---help---
 	  This driver is for stlc4550 or stlc4560 based wireless chips

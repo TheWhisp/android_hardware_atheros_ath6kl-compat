@@ -52,22 +52,22 @@ int b43_phy_allocate(struct b43_wldev *dev)
 		phy->ops = &b43_phyops_g;
 		break;
 	case B43_PHYTYPE_N:
-#ifdef CONFIG_B43_PHY_N
+#ifdef CPTCFG_B43_PHY_N
 		phy->ops = &b43_phyops_n;
 #endif
 		break;
 	case B43_PHYTYPE_LP:
-#ifdef CONFIG_B43_PHY_LP
+#ifdef CPTCFG_B43_PHY_LP
 		phy->ops = &b43_phyops_lp;
 #endif
 		break;
 	case B43_PHYTYPE_HT:
-#ifdef CONFIG_B43_PHY_HT
+#ifdef CPTCFG_B43_PHY_HT
 		phy->ops = &b43_phyops_ht;
 #endif
 		break;
 	case B43_PHYTYPE_LCN:
-#ifdef CONFIG_B43_PHY_LCN
+#ifdef CPTCFG_B43_PHY_LCN
 		phy->ops = &b43_phyops_lcn;
 #endif
 		break;
@@ -472,7 +472,7 @@ void b43_phy_force_clock(struct b43_wldev *dev, bool force)
 		dev->phy.type != B43_PHYTYPE_HT);
 
 	switch (dev->dev->bus_type) {
-#ifdef CONFIG_B43_BCMA
+#ifdef CPTCFG_B43_BCMA
 	case B43_BUS_BCMA:
 		tmp = bcma_aread32(dev->dev->bdev, BCMA_IOCTL);
 		if (force)
@@ -482,7 +482,7 @@ void b43_phy_force_clock(struct b43_wldev *dev, bool force)
 		bcma_awrite32(dev->dev->bdev, BCMA_IOCTL, tmp);
 		break;
 #endif
-#ifdef CONFIG_B43_SSB
+#ifdef CPTCFG_B43_SSB
 	case B43_BUS_SSB:
 		tmp = ssb_read32(dev->dev->sdev, SSB_TMSLOW);
 		if (force)

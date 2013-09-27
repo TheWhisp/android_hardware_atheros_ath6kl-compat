@@ -28,8 +28,9 @@
 #include "target.h"
 #include "debug.h"
 #include "cfg80211.h"
+#include "trace.h"
 
-extern void wlan_setup_power(int on);
+extern void wlan_setup_power(int on, int detect);
 
 struct ath6kl_sdio {
 	struct sdio_func *func;
@@ -181,6 +182,8 @@ static int ath6kl_sdio_io(struct sdio_func *func, u32 request, u32 addr,
 		   request & HIF_FIXED_ADDRESS ? " (fixed)" : "", buf, len);
 	ath6kl_dbg_dump(ATH6KL_DBG_SDIO_DUMP, NULL, "sdio ", buf, len);
 
+	trace_ath6kl_sdio(addr, request, buf, len);
+
 	return ret;
 }
 
@@ -311,6 +314,13 @@ static int ath6kl_sdio_scat_rw(struct ath6kl_sdio *ar_sdio,
 	sdio_claim_host(ar_sdio->func);
 
 	mmc_set_data_timeout(&data, ar_sdio->func->card);
+
+	trace_ath6kl_sdio_scat(scat_req->addr,
+			       scat_req->req,
+			       scat_req->len,
+			       scat_req->scat_entries,
+			       scat_req->scat_list);
+
 	/* synchronous call to process request */
 	mmc_wait_for_req(ar_sdio->func->card->host, &mmc_req);
 
@@ -1137,10 +1147,12 @@ static int ath6kl_sdio_bmi_write(struct ath6kl *ar, u8 *buf, u32 len)
 
 	ret = ath6kl_sdio_read_write_sync(ar, addr, buf, len,
 					  HIF_WR_SYNC_BYTE_INC);
-	if (ret)
+	if (ret) {
 		ath6kl_err("unable to send the bmi data to the device\n");
+		return ret;
+	}
 
-	return ret;
+	return 0;
 }
 
 static int ath6kl_sdio_bmi_read(struct ath6kl *ar, u8 *buf, u32 len)
@@ -1424,7 +1436,7 @@ static int __init ath6kl_sdio_init(void)
 {
 	int ret;
 
-	wlan_setup_power(1);
+	wlan_setup_power(1, 1);
 	ret = sdio_register_driver(&ath6kl_sdio_driver);
 	if (ret)
 		ath6kl_err("sdio driver registration failed: %d\n", ret);
@@ -1435,7 +1447,7 @@ static int __init ath6kl_sdio_init(void)
 static void __exit ath6kl_sdio_exit(void)
 {
 	sdio_unregister_driver(&ath6kl_sdio_driver);
-	wlan_setup_power(0);
+	wlan_setup_power(0, 1);
 }
 
 module_init(ath6kl_sdio_init);

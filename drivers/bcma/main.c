@@ -120,6 +120,11 @@ static int bcma_register_cores(struct bcma_bus *bus)
 			continue;
 		}
 
+		/* Only first GMAC core on BCM4706 is connected and working */
+		if (core->id.id == BCMA_CORE_4706_MAC_GBIT &&
+		    core->core_unit > 0)
+			continue;
+
 		core->dev.release = bcma_release_core_dev;
 		core->dev.bus = &bcma_bus_type;
 		dev_set_name(&core->dev, "bcma%d:%d", bus->num, dev_id);
@@ -149,7 +154,7 @@ static int bcma_register_cores(struct bcma_bus *bus)
 		dev_id++;
 	}
 
-#ifdef CONFIG_BCMA_DRIVER_MIPS
+#ifdef CPTCFG_BCMA_DRIVER_MIPS
 	if (bus->drv_cc.pflash.present) {
 		err = platform_device_register(&bcma_pflash_dev);
 		if (err)
@@ -157,7 +162,7 @@ static int bcma_register_cores(struct bcma_bus *bus)
 	}
 #endif
 
-#ifdef CONFIG_BCMA_SFLASH
+#ifdef CPTCFG_BCMA_SFLASH
 	if (bus->drv_cc.sflash.present) {
 		err = platform_device_register(&bcma_sflash_dev);
 		if (err)
@@ -165,7 +170,7 @@ static int bcma_register_cores(struct bcma_bus *bus)
 	}
 #endif
 
-#ifdef CONFIG_BCMA_NFLASH
+#ifdef CPTCFG_BCMA_NFLASH
 	if (bus->drv_cc.nflash.present) {
 		err = platform_device_register(&bcma_nflash_dev);
 		if (err)
@@ -463,7 +468,7 @@ static int __init bcma_modinit(void)
 	if (err)
 		return err;
 
-#ifdef CONFIG_BCMA_HOST_PCI
+#ifdef CPTCFG_BCMA_HOST_PCI
 	err = bcma_host_pci_init();
 	if (err) {
 		pr_err("PCI host initialization failed\n");
@@ -477,7 +482,7 @@ fs_initcall(bcma_modinit);
 
 static void __exit bcma_modexit(void)
 {
-#ifdef CONFIG_BCMA_HOST_PCI
+#ifdef CPTCFG_BCMA_HOST_PCI
 	bcma_host_pci_exit();
 #endif
 	bus_unregister(&bcma_bus_type);

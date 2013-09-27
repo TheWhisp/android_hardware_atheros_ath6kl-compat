@@ -325,11 +325,11 @@ void ath6kl_core_cleanup(struct ath6kl *ar)
 
 	ath6kl_debug_cleanup(ar);
 
-	vfree(ar->fw_board);
-	vfree(ar->fw_otp);
+	kfree(ar->fw_board);
+	kfree(ar->fw_otp);
 	vfree(ar->fw);
-	vfree(ar->fw_patch);
-	vfree(ar->fw_testscript);
+	kfree(ar->fw_patch);
+	kfree(ar->fw_testscript);
 
 	ath6kl_cfg80211_cleanup(ar);
 }

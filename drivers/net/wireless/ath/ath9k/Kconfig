@@ -1,7 +1,9 @@
 config ATH9K_HW
 	tristate
+	depends on m
 config ATH9K_COMMON
 	tristate
+	depends on m
 	select ATH_COMMON
 config ATH9K_DFS_DEBUGFS
 	def_bool y
@@ -17,11 +19,12 @@ config ATH9K_BTCOEX_SUPPORT
 
 config ATH9K
 	tristate "Atheros 802.11n wireless cards support"
-	depends on MAC80211
+	depends on m
+	depends on MAC80211 && HAS_DMA
 	select ATH9K_HW
 	select MAC80211_LEDS
-	select LEDS_CLASS
-	select NEW_LEDS
+	select BACKPORT_LEDS_CLASS
+	select BACKPORT_NEW_LEDS
 	select ATH9K_COMMON
 	---help---
 	  This module adds support for wireless adapters based on
@@ -45,6 +48,7 @@ config ATH9K_PCI
 	  Say Y, if you have a compatible PCI/PCIe wireless card.
 
 config ATH9K_AHB
+	depends on !BACKPORT_KERNEL_2_6_30
 	bool "Atheros ath9k AHB bus support"
 	depends on ATH9K
 	default n
@@ -58,7 +62,7 @@ config ATH9K_DEBUGFS
 	bool "Atheros ath9k debugging"
 	depends on ATH9K
 	select MAC80211_DEBUGFS
-	select RELAY
+	depends on RELAY
 	---help---
 	  Say Y, if you need access to ath9k's statistics for
 	  interrupts, rate control, etc.
@@ -92,21 +96,26 @@ config ATH9K_MAC_DEBUG
 	  This option enables collection of statistics for Rx/Tx status
 	  data and some other MAC related statistics
 
-config ATH9K_RATE_CONTROL
+config ATH9K_LEGACY_RATE_CONTROL
 	bool "Atheros ath9k rate control"
 	depends on ATH9K
-	default y
+	default n
 	---help---
 	  Say Y, if you want to use the ath9k specific rate control
-	  module instead of minstrel_ht.
+	  module instead of minstrel_ht. Be warned that there are various
+	  issues with the ath9k RC and minstrel is a more robust algorithm.
+	  Note that even if this option is selected, "ath9k_rate_control"
+	  has to be passed to mac80211 using the module parameter,
+	  ieee80211_default_rc_algo.
 
 config ATH9K_HTC
        tristate "Atheros HTC based wireless cards support"
+       depends on m
        depends on USB && MAC80211
        select ATH9K_HW
        select MAC80211_LEDS
-       select LEDS_CLASS
-       select NEW_LEDS
+       select BACKPORT_LEDS_CLASS
+       select BACKPORT_NEW_LEDS
        select ATH9K_COMMON
        ---help---
 	 Support for Atheros HTC based cards.

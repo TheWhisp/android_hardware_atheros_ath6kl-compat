@@ -8,4 +8,4 @@ vmwgfx-y := vmwgfx_execbuf.o vmwgfx_gmr.o vmwgfx_kms.o vmwgfx_drv.o \
 	    vmwgfx_fence.o vmwgfx_dmabuf.o vmwgfx_scrn.o vmwgfx_context.o \
 	    vmwgfx_surface.o
 
-obj-$(CONFIG_COMPAT_DRM_VMWGFX) := vmwgfx.o
+obj-$(CPTCFG_DRM_VMWGFX) := vmwgfx.o

@@ -10,6 +10,8 @@
 
 #include <linux/workqueue.h>
 #include <linux/export.h>
+#include <linux/pci.h>
+#include <linux/pci_regs.h>
 
 bool mod_delayed_work(struct workqueue_struct *wq, struct delayed_work *dwork,
 		      unsigned long delay)
@@ -161,7 +163,7 @@ int pcie_capability_read_word(struct pci_dev *dev, int pos, u16 *val)
 
 	return 0;
 }
-EXPORT_SYMBOL(pcie_capability_read_word);
+EXPORT_SYMBOL_GPL(pcie_capability_read_word);
 
 int pcie_capability_read_dword(struct pci_dev *dev, int pos, u32 *val)
 {
@@ -190,7 +192,7 @@ int pcie_capability_read_dword(struct pci_dev *dev, int pos, u32 *val)
 
 	return 0;
 }
-EXPORT_SYMBOL(pcie_capability_read_dword);
+EXPORT_SYMBOL_GPL(pcie_capability_read_dword);
 
 int pcie_capability_write_word(struct pci_dev *dev, int pos, u16 val)
 {
@@ -202,7 +204,7 @@ int pcie_capability_write_word(struct pci_dev *dev, int pos, u16 val)
 
 	return pci_write_config_word(dev, pci_pcie_cap(dev) + pos, val);
 }
-EXPORT_SYMBOL(pcie_capability_write_word);
+EXPORT_SYMBOL_GPL(pcie_capability_write_word);
 
 int pcie_capability_write_dword(struct pci_dev *dev, int pos, u32 val)
 {
@@ -214,7 +216,7 @@ int pcie_capability_write_dword(struct pci_dev *dev, int pos, u32 val)
 
 	return pci_write_config_dword(dev, pci_pcie_cap(dev) + pos, val);
 }
-EXPORT_SYMBOL(pcie_capability_write_dword);
+EXPORT_SYMBOL_GPL(pcie_capability_write_dword);
 
 int pcie_capability_clear_and_set_word(struct pci_dev *dev, int pos,
 				       u16 clear, u16 set)
@@ -231,7 +233,7 @@ int pcie_capability_clear_and_set_word(struct pci_dev *dev, int pos,
 
 	return ret;
 }
-EXPORT_SYMBOL(pcie_capability_clear_and_set_word);
+EXPORT_SYMBOL_GPL(pcie_capability_clear_and_set_word);
 
 int pcie_capability_clear_and_set_dword(struct pci_dev *dev, int pos,
 					u32 clear, u32 set)
@@ -248,4 +250,4 @@ int pcie_capability_clear_and_set_dword(struct pci_dev *dev, int pos,
 
 	return ret;
 }
-EXPORT_SYMBOL(pcie_capability_clear_and_set_dword);
+EXPORT_SYMBOL_GPL(pcie_capability_clear_and_set_dword);

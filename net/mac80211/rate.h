@@ -106,7 +106,7 @@ static inline void rate_control_free_sta(struct sta_info *sta)
 
 static inline void rate_control_add_sta_debugfs(struct sta_info *sta)
 {
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct rate_control_ref *ref = sta->rate_ctrl;
 	if (ref && sta->debugfs.dir && ref->ops->add_sta_debugfs)
 		ref->ops->add_sta_debugfs(ref->priv, sta->rate_ctrl_priv,
@@ -116,7 +116,7 @@ static inline void rate_control_add_sta_debugfs(struct sta_info *sta)
 
 static inline void rate_control_remove_sta_debugfs(struct sta_info *sta)
 {
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct rate_control_ref *ref = sta->rate_ctrl;
 	if (ref && ref->ops->remove_sta_debugfs)
 		ref->ops->remove_sta_debugfs(ref->priv, sta->rate_ctrl_priv);
@@ -131,7 +131,7 @@ void rate_control_deinitialize(struct ieee80211_local *local);
 
 
 /* Rate control algorithms */
-#ifdef CONFIG_MAC80211_RC_PID
+#ifdef CPTCFG_MAC80211_RC_PID
 extern int rc80211_pid_init(void);
 extern void rc80211_pid_exit(void);
 #else
@@ -144,7 +144,7 @@ static inline void rc80211_pid_exit(void)
 }
 #endif
 
-#ifdef CONFIG_MAC80211_RC_MINSTREL
+#ifdef CPTCFG_MAC80211_RC_MINSTREL
 extern int rc80211_minstrel_init(void);
 extern void rc80211_minstrel_exit(void);
 #else
@@ -157,7 +157,7 @@ static inline void rc80211_minstrel_exit(void)
 }
 #endif
 
-#ifdef CONFIG_MAC80211_RC_MINSTREL_HT
+#ifdef CPTCFG_MAC80211_RC_MINSTREL_HT
 extern int rc80211_minstrel_ht_init(void);
 extern void rc80211_minstrel_ht_exit(void);
 #else

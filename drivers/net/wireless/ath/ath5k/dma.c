@@ -29,10 +29,7 @@
  * status registers (ISR).
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-
-#include <linux/printk.h>
 
 #include "ath5k.h"
 #include "reg.h"

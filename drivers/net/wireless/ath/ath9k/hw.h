@@ -363,7 +363,6 @@ enum ath9k_int {
 	ATH9K_INT_NOCARD = 0xffffffff
 };
 
-#define CHANNEL_CW_INT    0x00002
 #define CHANNEL_CCK       0x00020
 #define CHANNEL_OFDM      0x00040
 #define CHANNEL_2GHZ      0x00080
@@ -848,14 +847,7 @@ struct ath_hw {
 	struct ath_hw_ops ops;
 
 	/* Used to program the radio on non single-chip devices */
-	u32 *analogBank0Data;
-	u32 *analogBank1Data;
-	u32 *analogBank2Data;
-	u32 *analogBank3Data;
 	u32 *analogBank6Data;
-	u32 *analogBank6TPCData;
-	u32 *analogBank7Data;
-	u32 *bank6Temp;
 
 	int coverage_class;
 	u32 slottime;
@@ -867,7 +859,7 @@ struct ath_hw {
 	enum ath9k_ani_cmd ani_function;
 	u32 ani_skip_count;
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 	struct ath_btcoex_hw btcoex_hw;
 #endif
 
@@ -886,14 +878,8 @@ struct ath_hw {
 
 	struct ar5416IniArray iniModes;
 	struct ar5416IniArray iniCommon;
-	struct ar5416IniArray iniBank0;
 	struct ar5416IniArray iniBB_RfGain;
-	struct ar5416IniArray iniBank1;
-	struct ar5416IniArray iniBank2;
-	struct ar5416IniArray iniBank3;
 	struct ar5416IniArray iniBank6;
-	struct ar5416IniArray iniBank6TPC;
-	struct ar5416IniArray iniBank7;
 	struct ar5416IniArray iniAddac;
 	struct ar5416IniArray iniPcieSerdes;
 #ifdef CONFIG_PM_SLEEP
@@ -1041,7 +1027,7 @@ bool ath9k_hw_check_alive(struct ath_hw *ah);
 
 bool ath9k_hw_setpower(struct ath_hw *ah, enum ath9k_power_mode mode);
 
-#ifdef CONFIG_ATH9K_DEBUGFS
+#ifdef CPTCFG_ATH9K_DEBUGFS
 void ath9k_debug_sync_cause(struct ath_common *common, u32 sync_cause);
 #else
 static inline void ath9k_debug_sync_cause(struct ath_common *common,
@@ -1114,7 +1100,7 @@ void ar9002_hw_load_ani_reg(struct ath_hw *ah, struct ath9k_channel *chan);
 void ath9k_ani_reset(struct ath_hw *ah, bool is_scanning);
 void ath9k_hw_ani_monitor(struct ath_hw *ah, struct ath9k_channel *chan);
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 static inline bool ath9k_hw_btcoex_is_enabled(struct ath_hw *ah)
 {
 	return ah->btcoex_hw.enabled;
@@ -1148,7 +1134,7 @@ ath9k_hw_get_btcoex_scheme(struct ath_hw *ah)
 {
 	return ATH_BTCOEX_CFG_NONE;
 }
-#endif /* CONFIG_ATH9K_BTCOEX_SUPPORT */
+#endif /* CPTCFG_ATH9K_BTCOEX_SUPPORT */
 
 
 #ifdef CONFIG_PM_SLEEP

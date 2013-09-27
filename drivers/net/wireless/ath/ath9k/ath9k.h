@@ -234,6 +234,7 @@ struct ath_buf {
 	dma_addr_t bf_daddr;		/* physical addr of desc */
 	dma_addr_t bf_buf_addr;	/* physical addr of data buffer, for DMA */
 	bool bf_stale;
+	struct ieee80211_tx_rate rates[4];
 	struct ath_buf_state bf_state;
 };
 
@@ -250,9 +251,9 @@ struct ath_atx_tid {
 	int tidno;
 	int baw_head;   /* first un-acked tx buffer */
 	int baw_tail;   /* next unused tx buffer slot */
-	int sched;
-	int paused;
-	u8 state;
+	bool sched;
+	bool paused;
+	bool active;
 };
 
 struct ath_node {
@@ -268,14 +269,10 @@ struct ath_node {
 
 	bool sleeping;
 
-#if defined(CONFIG_MAC80211_DEBUGFS) && defined(CONFIG_ATH9K_DEBUGFS)
+#if defined(CPTCFG_MAC80211_DEBUGFS) && defined(CPTCFG_ATH9K_DEBUGFS)
 	struct dentry *node_stat;
 #endif
 };
-
-#define AGGR_CLEANUP         BIT(1)
-#define AGGR_ADDBA_COMPLETE  BIT(2)
-#define AGGR_ADDBA_PROGRESS  BIT(3)
 
 struct ath_tx_control {
 	struct ath_txq *txq;
@@ -311,6 +308,7 @@ struct ath_rx_edma {
 struct ath_rx {
 	u8 defant;
 	u8 rxotherant;
+	bool discard_next;
 	u32 *rxlink;
 	u32 num_pkts;
 	unsigned int rxfilter;
@@ -488,7 +486,7 @@ struct ath_btcoex {
 	u8 stomp_audio;
 };
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 int ath9k_init_btcoex(struct ath_softc *sc);
 void ath9k_deinit_btcoex(struct ath_softc *sc);
 void ath9k_start_btcoex(struct ath_softc *sc);
@@ -529,7 +527,7 @@ static inline int ath9k_dump_btcoex(struct ath_softc *sc, u8 *buf, u32 size)
 {
 	return 0;
 }
-#endif /* CONFIG_ATH9K_BTCOEX_SUPPORT */
+#endif /* CPTCFG_ATH9K_BTCOEX_SUPPORT */
 
 struct ath9k_wow_pattern {
 	u8 pattern_bytes[MAX_PATTERN_SIZE];
@@ -547,7 +545,7 @@ struct ath9k_wow_pattern {
 #define ATH_LED_PIN_9485		6
 #define ATH_LED_PIN_9462		4
 
-#ifdef CONFIG_MAC80211_LEDS
+#ifdef CPTCFG_MAC80211_LEDS
 void ath_init_leds(struct ath_softc *sc);
 void ath_deinit_leds(struct ath_softc *sc);
 void ath_fill_led_pin(struct ath_softc *sc);
@@ -657,11 +655,10 @@ enum sc_op_flags {
 struct ath_rate_table;
 
 struct ath9k_vif_iter_data {
-	const u8 *hw_macaddr; /* phy's hardware address, set
-			       * before starting iteration for
-			       * valid bssid mask.
-			       */
+	u8 hw_macaddr[ETH_ALEN]; /* address of the first vif */
 	u8 mask[ETH_ALEN]; /* bssid mask */
+	bool has_hw_macaddr;
+
 	int naps;      /* number of AP vifs */
 	int nmeshes;   /* number of mesh vifs */
 	int nstations; /* number of station vifs */
@@ -725,7 +722,7 @@ struct ath_softc {
 	struct ath_beacon beacon;
 	struct ieee80211_supported_band sbands[IEEE80211_NUM_BANDS];
 
-#ifdef CONFIG_MAC80211_LEDS
+#ifdef CPTCFG_MAC80211_LEDS
 	bool led_registered;
 	char led_name[32];
 	struct led_classdev led_cdev;
@@ -734,7 +731,7 @@ struct ath_softc {
 	struct ath9k_hw_cal_data caldata;
 	int last_rssi;
 
-#ifdef CONFIG_ATH9K_DEBUGFS
+#ifdef CPTCFG_ATH9K_DEBUGFS
 	struct ath9k_debug debug;
 #endif
 	struct ath_beacon_config cur_beacon_conf;
@@ -742,7 +739,7 @@ struct ath_softc {
 	struct delayed_work hw_pll_work;
 	struct timer_list rx_poll_timer;
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 	struct ath_btcoex btcoex;
 	struct ath_mci_coex mci_coex;
 	struct work_struct mci_work;
@@ -921,7 +918,7 @@ int ath9k_spectral_scan_config(struct ieee80211_hw *hw,
 			       enum spectral_mode spectral_mode);
 
 
-#ifdef CONFIG_ATH9K_PCI
+#ifdef CPTCFG_ATH9K_PCI
 int ath_pci_init(void);
 void ath_pci_exit(void);
 #else
@@ -929,7 +926,7 @@ static inline int ath_pci_init(void) { return 0; };
 static inline void ath_pci_exit(void) {};
 #endif
 
-#ifdef CONFIG_ATH9K_AHB
+#ifdef CPTCFG_ATH9K_AHB
 int ath_ahb_init(void);
 void ath_ahb_exit(void);
 #else

@@ -7,7 +7,7 @@
 #include <linux/spinlock.h>
 
 
-#ifdef CONFIG_SSB_DRIVER_GIGE
+#ifdef CPTCFG_SSB_DRIVER_GIGE
 
 
 #define SSB_GIGE_PCIIO			0x0000 /* PCI I/O Registers (1024 bytes) */
@@ -124,7 +124,7 @@ static inline void ssb_gige_exit(void)
 }
 
 
-#else /* CONFIG_SSB_DRIVER_GIGE */
+#else /* CPTCFG_SSB_DRIVER_GIGE */
 /* Gigabit Ethernet driver disabled */
 
 
@@ -175,5 +175,5 @@ static inline int ssb_gige_get_macaddr(struct pci_dev *pdev, u8 *macaddr)
 	return -ENODEV;
 }
 
-#endif /* CONFIG_SSB_DRIVER_GIGE */
+#endif /* CPTCFG_SSB_DRIVER_GIGE */
 #endif /* LINUX_SSB_DRIVER_GIGE_H_ */

@@ -22,7 +22,7 @@
  * USA
  *
  * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
+ * in the file called COPYING.
  *
  * Contact Information:
  *  Intel Linux Wireless <ilw@linux.intel.com>
@@ -66,6 +66,7 @@
 #include <linux/device.h>
 #include <linux/interrupt.h>
 #include <linux/export.h>
+#include "iwl-drv.h"
 #include "iwl-debug.h"
 #include "iwl-devtrace.h"
 
@@ -88,11 +89,11 @@ void __iwl_ ##fn(struct device *dev, const char *fmt, ...)	\
 }
 
 __iwl_fn(warn)
-EXPORT_SYMBOL_GPL(__iwl_warn);
+IWL_EXPORT_SYMBOL(__iwl_warn);
 __iwl_fn(info)
-EXPORT_SYMBOL_GPL(__iwl_info);
+IWL_EXPORT_SYMBOL(__iwl_info);
 __iwl_fn(crit)
-EXPORT_SYMBOL_GPL(__iwl_crit);
+IWL_EXPORT_SYMBOL(__iwl_crit);
 
 void __iwl_err(struct device *dev, bool rfkill_prefix, bool trace_only,
 		const char *fmt, ...)
@@ -118,9 +119,9 @@ void __iwl_err(struct device *dev, bool rfkill_prefix, bool trace_only,
 	trace_iwlwifi_err(&vaf);
 	va_end(args);
 }
-EXPORT_SYMBOL_GPL(__iwl_err);
+IWL_EXPORT_SYMBOL(__iwl_err);
 
-#if defined(CONFIG_IWLWIFI_DEBUG) || defined(CONFIG_IWLWIFI_DEVICE_TRACING)
+#if defined(CPTCFG_IWLWIFI_DEBUG) || defined(CPTCFG_IWLWIFI_DEVICE_TRACING)
 void __iwl_dbg(struct device *dev,
 	       u32 level, bool limit, const char *function,
 	       const char *fmt, ...)
@@ -131,16 +132,15 @@ void __iwl_dbg(struct device *dev,
 	va_list args;
 
 	va_start(args, fmt);
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (iwl_have_debug_level(level) &&
 	    (!limit || net_ratelimit())) {
 		va_list args2;
 
 		va_copy(args2, args);
 		vaf.va = &args2;
-		dev_printk(KERN_DEBUG, dev, "%c %s %pV",
-			   in_interrupt() ? 'I' : 'U',
-			   function, &vaf);
+		dev_dbg(dev, "%c %s %pV", in_interrupt() ? 'I' : 'U',
+			function, &vaf);
 		va_end(args2);
 	}
 #endif
@@ -148,5 +148,5 @@ void __iwl_dbg(struct device *dev,
 	trace_iwlwifi_dbg(level, in_interrupt(), function, &vaf);
 	va_end(args);
 }
-EXPORT_SYMBOL_GPL(__iwl_dbg);
+IWL_EXPORT_SYMBOL(__iwl_dbg);
 #endif

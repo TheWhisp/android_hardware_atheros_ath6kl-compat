@@ -746,13 +746,13 @@ struct iwl_priv {
 		struct statistics_rx_ht_phy rx_ofdm_ht;
 		struct statistics_rx_phy rx_cck;
 		struct statistics_tx tx;
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 		struct statistics_bt_activity bt_activity;
 		__le32 num_bt_kills, accum_num_bt_kills;
 #endif
 		spinlock_t lock;
 	} statistics;
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 	struct {
 		struct statistics_general_common common;
 		struct statistics_rx_non_phy rx_non_phy;
@@ -835,13 +835,13 @@ struct iwl_priv {
 	s8 tx_power_user_lmt;
 	s8 tx_power_next;
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 	/* debugfs */
 	struct dentry *debugfs_dir;
 	u32 dbgfs_sram_offset, dbgfs_sram_len;
 	bool disable_ht40;
 	void *wowlan_sram;
-#endif /* CONFIG_IWLWIFI_DEBUGFS */
+#endif /* CPTCFG_IWLWIFI_DEBUGFS */
 
 	struct iwl_nvm_data *nvm_data;
 	/* eeprom blob for debugfs/testmode */
@@ -860,7 +860,7 @@ struct iwl_priv {
 	unsigned long blink_on, blink_off;
 	bool led_registered;
 
-#ifdef CONFIG_IWLWIFI_DEVICE_TESTMODE
+#ifdef CPTCFG_IWLWIFI_DEVICE_TESTMODE
 	struct iwl_test tst;
 	u32 tm_fixed_rate;
 #endif

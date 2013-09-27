@@ -354,7 +354,7 @@ void ssb_chipcommon_init(struct ssb_chipcommon *cc)
 
 	if (cc->dev->id.revision >= 11)
 		cc->status = chipco_read32(cc, SSB_CHIPCO_CHIPSTAT);
-	ssb_dprintk(KERN_INFO PFX "chipcommon status is 0x%x\n", cc->status);
+	ssb_dbg("chipcommon status is 0x%x\n", cc->status);
 
 	if (cc->dev->id.revision >= 20) {
 		chipco_write32(cc, SSB_CHIPCO_GPIOPULLUP, 0);
@@ -597,7 +597,7 @@ u32 ssb_chipco_gpio_pulldown(struct ssb_chipcommon *cc, u32 mask, u32 value)
 	return res;
 }
 
-#ifdef CONFIG_SSB_SERIAL
+#ifdef CPTCFG_SSB_SERIAL
 int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
 			   struct ssb_serial_port *ports)
 {
@@ -694,4 +694,4 @@ int ssb_chipco_serial_init(struct ssb_chipcommon *cc,
 
 	return nr_ports;
 }
-#endif /* CONFIG_SSB_SERIAL */
+#endif /* CPTCFG_SSB_SERIAL */

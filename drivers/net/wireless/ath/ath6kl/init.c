@@ -16,10 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/moduleparam.h>
 #include <linux/errno.h>
 #include <linux/export.h>
@@ -33,37 +31,6 @@
 #include "debug.h"
 #include "hif-ops.h"
 #include "htc-ops.h"
-
-static unsigned int samsung_firmware;
-module_param(samsung_firmware, uint, 0644);
-
-static const struct ath6kl_hw hw_list_samsung[] = {
-	{
-		.id				= AR6003_HW_2_0_VERSION,
-		.name				= "ar6003 hw 2.0",
-		.dataset_patch_addr		= 0x57e908,
-		.app_load_addr			= 0x543800,
-		.board_ext_data_addr		= 0x57e600,
-		.reserved_ram_size		= 6912,
-		.refclk_hz			= 26000000,
-		.uarttx_pin			= 8,
-		.flags				= ATH6KL_HW_SDIO_CRC_ERROR_WAR,
-
-		/* hw2.0 needs override address hardcoded */
-		.app_start_override_addr	= 0x945000,
-
-		.fw = {
-			.dir		= AR6003_HW_2_0_FW_DIR,
-			.otp		= "samsung_"AR6003_HW_2_0_OTP_FILE,
-			.fw		= "samsung_"AR6003_HW_2_0_FIRMWARE_FILE,
-			.tcmd		= "samsung_"AR6003_HW_2_0_TCMD_FIRMWARE_FILE,
-			.patch		= "samsung_"AR6003_HW_2_0_PATCH_FILE,
-		},
-
-		.fw_board		= AR6003_HW_2_0_BOARD_DATA_FILE,
-		.fw_default_board	= AR6003_HW_2_0_DEFAULT_BOARD_DATA_FILE,
-	},
-};
 
 static const struct ath6kl_hw hw_list[] = {
 	{
@@ -98,7 +65,7 @@ static const struct ath6kl_hw hw_list[] = {
 		.app_load_addr			= 0x1234,
 		.board_ext_data_addr		= 0x542330,
 		.reserved_ram_size		= 512,
-		.refclk_hz			= 26000000,
+		.refclk_hz			= 19200000,
 		.uarttx_pin			= 8,
 		.testscript_addr		= 0x57ef74,
 		.flags				= ATH6KL_HW_SDIO_CRC_ERROR_WAR,
@@ -234,8 +201,8 @@ struct sk_buff *ath6kl_buf_alloc(int size)
 	u16 reserved;
 
 	/* Add chacheline space at front and back of buffer */
-	reserved = (2 * L1_CACHE_BYTES) + ATH6KL_DATA_OFFSET +
-		   sizeof(struct htc_packet) + ATH6KL_HTC_ALIGN_BYTES;
+	reserved = roundup((2 * L1_CACHE_BYTES) + ATH6KL_DATA_OFFSET +
+		   sizeof(struct htc_packet) + ATH6KL_HTC_ALIGN_BYTES, 4);
 	skb = dev_alloc_skb(size + reserved);
 
 	if (skb)
@@ -681,12 +648,11 @@ static int ath6kl_get_fw(struct ath6kl *ar, const char *filename,
 		return ret;
 
 	*fw_len = fw_entry->size;
-	*fw = vmalloc(fw_entry->size);
+	*fw = kmemdup(fw_entry->data, fw_entry->size, GFP_KERNEL);
 
 	if (*fw == NULL)
 		ret = -ENOMEM;
 
-	memcpy(*fw, fw_entry->data, fw_entry->size);
 	release_firmware(fw_entry);
 
 	return ret;
@@ -1013,14 +979,13 @@ static int ath6kl_fetch_fw_apin(struct ath6kl *ar, const char *name)
 			ath6kl_dbg(ATH6KL_DBG_BOOT, "found otp image ie (%zd B)\n",
 				   ie_len);
 
-			ar->fw_otp = vmalloc(ie_len);
+			ar->fw_otp = kmemdup(data, ie_len, GFP_KERNEL);
 
 			if (ar->fw_otp == NULL) {
 				ret = -ENOMEM;
 				goto out;
 			}
 
-			memcpy(ar->fw_otp, data, ie_len);
 			ar->fw_otp_len = ie_len;
 			break;
 		case ATH6KL_FW_IE_FW_IMAGE:
@@ -1045,14 +1010,13 @@ static int ath6kl_fetch_fw_apin(struct ath6kl *ar, const char *name)
 			ath6kl_dbg(ATH6KL_DBG_BOOT, "found patch image ie (%zd B)\n",
 				   ie_len);
 
-			ar->fw_patch = vmalloc(ie_len);
+			ar->fw_patch = kmemdup(data, ie_len, GFP_KERNEL);
 
 			if (ar->fw_patch == NULL) {
 				ret = -ENOMEM;
 				goto out;
 			}
 
-			memcpy(ar->fw_patch, data, ie_len);
 			ar->fw_patch_len = ie_len;
 			break;
 		case ATH6KL_FW_IE_RESERVED_RAM_SIZE:
@@ -1543,32 +1507,17 @@ int ath6kl_init_hw_params(struct ath6kl *ar)
 	const struct ath6kl_hw *uninitialized_var(hw);
 	int i;
 
-	if (samsung_firmware == 1) {
-		for (i = 0; i < ARRAY_SIZE(hw_list_samsung); i++) {
-			hw = &hw_list_samsung[i];
+	for (i = 0; i < ARRAY_SIZE(hw_list); i++) {
+		hw = &hw_list[i];
 
-			if (hw->id == ar->version.target_ver)
-				break;
-		}
+		if (hw->id == ar->version.target_ver)
+			break;
+	}
 
-		if (i == ARRAY_SIZE(hw_list_samsung)) {
-			ath6kl_err("Unsupported hardware version: 0x%x\n",
-				   ar->version.target_ver);
-			return -EINVAL;
-		}
-	} else {
-		for (i = 0; i < ARRAY_SIZE(hw_list); i++) {
-			hw = &hw_list[i];
-
-			if (hw->id == ar->version.target_ver)
-				break;
-		}
-
-		if (i == ARRAY_SIZE(hw_list)) {
-			ath6kl_err("Unsupported hardware version: 0x%x\n",
-				   ar->version.target_ver);
-			return -EINVAL;
-		}
+	if (i == ARRAY_SIZE(hw_list)) {
+		ath6kl_err("Unsupported hardware version: 0x%x\n",
+			   ar->version.target_ver);
+		return -EINVAL;
 	}
 
 	ar->hw = *hw;
@@ -1600,10 +1549,89 @@ static const char *ath6kl_init_get_hif_name(enum ath6kl_hif_type type)
 	return NULL;
 }
 
+
+static const struct fw_capa_str_map {
+	int id;
+	const char *name;
+} fw_capa_map[] = {
+	{ ATH6KL_FW_CAPABILITY_HOST_P2P, "host-p2p" },
+	{ ATH6KL_FW_CAPABILITY_SCHED_SCAN, "sched-scan" },
+	{ ATH6KL_FW_CAPABILITY_STA_P2PDEV_DUPLEX, "sta-p2pdev-duplex" },
+	{ ATH6KL_FW_CAPABILITY_INACTIVITY_TIMEOUT, "inactivity-timeout" },
+	{ ATH6KL_FW_CAPABILITY_RSN_CAP_OVERRIDE, "rsn-cap-override" },
+	{ ATH6KL_FW_CAPABILITY_WOW_MULTICAST_FILTER, "wow-mc-filter" },
+	{ ATH6KL_FW_CAPABILITY_BMISS_ENHANCE, "bmiss-enhance" },
+	{ ATH6KL_FW_CAPABILITY_SCHED_SCAN_MATCH_LIST, "sscan-match-list" },
+	{ ATH6KL_FW_CAPABILITY_RSSI_SCAN_THOLD, "rssi-scan-thold" },
+	{ ATH6KL_FW_CAPABILITY_CUSTOM_MAC_ADDR, "custom-mac-addr" },
+	{ ATH6KL_FW_CAPABILITY_TX_ERR_NOTIFY, "tx-err-notify" },
+	{ ATH6KL_FW_CAPABILITY_REGDOMAIN, "regdomain" },
+	{ ATH6KL_FW_CAPABILITY_SCHED_SCAN_V2, "sched-scan-v2" },
+	{ ATH6KL_FW_CAPABILITY_HEART_BEAT_POLL, "hb-poll" },
+};
+
+static const char *ath6kl_init_get_fw_capa_name(unsigned int id)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(fw_capa_map); i++) {
+		if (fw_capa_map[i].id == id)
+			return fw_capa_map[i].name;
+	}
+
+	return "<unknown>";
+}
+
+static void ath6kl_init_get_fwcaps(struct ath6kl *ar, char *buf, size_t buf_len)
+{
+	u8 *data = (u8 *) ar->fw_capabilities;
+	size_t trunc_len, len = 0;
+	int i, index, bit;
+	char *trunc = "...";
+
+	for (i = 0; i < ATH6KL_FW_CAPABILITY_MAX; i++) {
+		index = i / 8;
+		bit = i % 8;
+
+		if (index >= sizeof(ar->fw_capabilities) * 4)
+			break;
+
+		if (buf_len - len < 4) {
+			ath6kl_warn("firmware capability buffer too small!\n");
+
+			/* add "..." to the end of string */
+			trunc_len = strlen(trunc) + 1;
+			strncpy(buf + buf_len - trunc_len, trunc, trunc_len);
+
+			return;
+		}
+
+		if (data[index] & (1 << bit)) {
+			len += scnprintf(buf + len, buf_len - len, "%s,",
+					    ath6kl_init_get_fw_capa_name(i));
+		}
+	}
+
+	/* overwrite the last comma */
+	if (len > 0)
+		len--;
+
+	buf[len] = '\0';
+}
+
+static int ath6kl_init_hw_reset(struct ath6kl *ar)
+{
+	ath6kl_dbg(ATH6KL_DBG_BOOT, "cold resetting the device");
+
+	return ath6kl_diag_write32(ar, RESET_CONTROL_ADDRESS,
+				   cpu_to_le32(RESET_CONTROL_COLD_RST));
+}
+
 static int __ath6kl_init_hw_start(struct ath6kl *ar)
 {
 	long timeleft;
 	int ret, i;
+	char buf[200];
 
 	ath6kl_dbg(ATH6KL_DBG_BOOT, "hw start\n");
 
@@ -1620,24 +1648,35 @@ static int __ath6kl_init_hw_start(struct ath6kl *ar)
 		goto err_power_off;
 
 	/* Do we need to finish the BMI phase */
-	/* FIXME: return error from ath6kl_bmi_done() */
-	if (ath6kl_bmi_done(ar)) {
-		ret = -EIO;
+	ret = ath6kl_bmi_done(ar);
+	if (ret)
 		goto err_power_off;
-	}
 
 	/*
 	 * The reason we have to wait for the target here is that the
 	 * driver layer has to init BMI in order to set the host block
 	 * size.
 	 */
-	if (ath6kl_htc_wait_target(ar->htc_target)) {
-		ret = -EIO;
+	ret = ath6kl_htc_wait_target(ar->htc_target);
+
+	if (ret == -ETIMEDOUT) {
+		/*
+		 * Most likely USB target is in odd state after reboot and
+		 * needs a reset. A cold reset makes the whole device
+		 * disappear from USB bus and initialisation starts from
+		 * beginning.
+		 */
+		ath6kl_warn("htc wait target timed out, resetting device\n");
+		ath6kl_init_hw_reset(ar);
+		goto err_power_off;
+	} else if (ret) {
+		ath6kl_err("htc wait target failed: %d\n", ret);
 		goto err_power_off;
 	}
 
-	if (ath6kl_init_service_ep(ar)) {
-		ret = -EIO;
+	ret = ath6kl_init_service_ep(ar);
+	if (ret) {
+		ath6kl_err("Endpoint service initilisation failed: %d\n", ret);
 		goto err_cleanup_scatter;
 	}
 
@@ -1668,6 +1707,8 @@ static int __ath6kl_init_hw_start(struct ath6kl *ar)
 			    ar->wiphy->fw_version,
 			    ar->fw_api,
 			    test_bit(TESTMODE, &ar->flag) ? " testmode" : "");
+		ath6kl_init_get_fwcaps(ar, buf, sizeof(buf));
+		ath6kl_info("firmware supports: %s\n", buf);
 	}
 
 	if (ar->version.abi_ver != ATH6KL_ABI_VERSION) {
@@ -1816,9 +1857,7 @@ void ath6kl_stop_txrx(struct ath6kl *ar)
 	 * Try to reset the device if we can. The driver may have been
 	 * configure NOT to reset the target during a debug session.
 	 */
-	ath6kl_dbg(ATH6KL_DBG_TRC,
-		   "attempting to reset target on instance destroy\n");
-	ath6kl_reset_device(ar, ar->target_type, true, true);
+	ath6kl_init_hw_reset(ar);
 
 	up(&ar->sem);
 }

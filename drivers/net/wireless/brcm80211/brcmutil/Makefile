@@ -16,13 +16,8 @@
 # CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
 ccflags-y :=				\
-	-I$(obj)			\
-	-I$(obj)/../include
+	-I$(backport_srctree)/drivers/net/wireless/brcm80211/brcmutil \
+	-I$(backport_srctree)/drivers/net/wireless/brcm80211/include
 
-BRCMUTIL_OFILES := \
-	utils.o
-
-MODULEPFX := brcmutil
-
-obj-$(CONFIG_BRCMUTIL)	+= $(MODULEPFX).o
-$(MODULEPFX)-objs	= $(BRCMUTIL_OFILES)
+obj-$(CPTCFG_BRCMUTIL)	+= brcmutil.o
+brcmutil-objs	= utils.o d11.o

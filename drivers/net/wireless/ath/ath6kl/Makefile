@@ -22,7 +22,7 @@
 # Author(s): ="Atheros"
 #------------------------------------------------------------------------------
 
-obj-$(CONFIG_ATH6KL) += ath6kl.o
+obj-$(CPTCFG_ATH6KL) += ath6kl.o
 ath6kl-y += debug.o
 ath6kl-y += hif.o
 ath6kl-y += htc_mbox.o
@@ -36,15 +36,15 @@ ath6kl-y += wmi.o
 ath6kl-y += core.o
 ath6kl-y += recovery.o
 ath6kl-y += sdio.o
-ath6kl-y += ../main.o
-ath6kl-y += ../regd.o
-ath6kl-y += ../hw.o
-ath6kl-y += ../key.o
-ath6kl-$(CONFIG_ATH_DEBUG) += ../debug.o
-ath6kl-$(CONFIG_NL80211_TESTMODE) += testmode.o
 
-#obj-$(CONFIG_ATH6KL_SDIO) += ath6kl_sdio.o
+ath6kl-$(CPTCFG_NL80211_TESTMODE) += testmode.o
+ath6kl-$(CPTCFG_ATH6KL_TRACING) += trace.o
+
+#obj-$(CPTCFG_ATH6KL_SDIO) += ath6kl_sdio.o
 #ath6kl_sdio-y += sdio.o
 
-#obj-$(CONFIG_ATH6KL_USB) += ath6kl_usb.o
+#obj-$(CPTCFG_ATH6KL_USB) += ath6kl_usb.o
 #ath6kl_usb-y += usb.o
+
+# for tracing framework to find trace.h
+CFLAGS_trace.o := -I$(src)

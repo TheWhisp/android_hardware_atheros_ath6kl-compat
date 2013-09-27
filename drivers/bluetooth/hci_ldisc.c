@@ -260,12 +260,12 @@ static int hci_uart_send_frame(struct sk_buff *skb)
 
 /* ------ LDISC part ------ */
 /* hci_uart_tty_open
- * 
+ *
  *     Called when line discipline changed to HCI_UART.
  *
  * Arguments:
  *     tty    pointer to tty info structure
- * Return Value:    
+ * Return Value:
  *     0 if success, otherwise error code
  */
 static int hci_uart_tty_open(struct tty_struct *tty)
@@ -370,15 +370,15 @@ static void hci_uart_tty_wakeup(struct tty_struct *tty)
 }
 
 /* hci_uart_tty_receive()
- * 
+ *
  *     Called by tty low level driver when receive data is
  *     available.
- *     
+ *
  * Arguments:  tty          pointer to tty isntance data
  *             data         pointer to received data
  *             flags        pointer to flags for data
  *             count        count of received data in bytes
- *     
+ *
  * Return Value:    None
  */
 static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *flags, int count)
@@ -393,7 +393,10 @@ static void hci_uart_tty_receive(struct tty_struct *tty, const u8 *data, char *f
 
 	spin_lock(&hu->rx_lock);
 	hu->proto->recv(hu, (void *) data, count);
-	hu->hdev->stat.byte_rx += count;
+
+	if (hu->hdev)
+		hu->hdev->stat.byte_rx += count;
+
 	spin_unlock(&hu->rx_lock);
 
 	tty_unthrottle(tty);
@@ -591,19 +594,19 @@ static int __init hci_uart_init(void)
 		return err;
 	}
 
-#ifdef CONFIG_BT_HCIUART_H4
+#ifdef CPTCFG_BT_HCIUART_H4
 	h4_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_BCSP
+#ifdef CPTCFG_BT_HCIUART_BCSP
 	bcsp_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_LL
+#ifdef CPTCFG_BT_HCIUART_LL
 	ll_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_ATH3K
+#ifdef CPTCFG_BT_HCIUART_ATH3K
 	ath_init();
 #endif
-#ifdef CONFIG_BT_HCIUART_3WIRE
+#ifdef CPTCFG_BT_HCIUART_3WIRE
 	h5_init();
 #endif
 
@@ -614,19 +617,19 @@ static void __exit hci_uart_exit(void)
 {
 	int err;
 
-#ifdef CONFIG_BT_HCIUART_H4
+#ifdef CPTCFG_BT_HCIUART_H4
 	h4_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_BCSP
+#ifdef CPTCFG_BT_HCIUART_BCSP
 	bcsp_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_LL
+#ifdef CPTCFG_BT_HCIUART_LL
 	ll_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_ATH3K
+#ifdef CPTCFG_BT_HCIUART_ATH3K
 	ath_deinit();
 #endif
-#ifdef CONFIG_BT_HCIUART_3WIRE
+#ifdef CPTCFG_BT_HCIUART_3WIRE
 	h5_deinit();
 #endif
 

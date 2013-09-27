@@ -13,8 +13,12 @@
  * Copyright (c) 2006-2007 Greg Kroah-Hartman <greg@kroah.com>
  * Copyright (c) 2006-2007 Novell Inc.
  */
-
+#include <linux/device.h>
+#include <net/sock.h>
 #include <net/compat.h>
+
+const char hex_asc[] = "0123456789abcdef";
+EXPORT_SYMBOL_GPL(hex_asc);
 
 /* 2.6.24 does not have the struct kobject with a name */
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,25))

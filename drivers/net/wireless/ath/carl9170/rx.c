@@ -260,7 +260,7 @@ void carl9170_handle_command_response(struct ar9170 *ar, void *buf, u32 len)
 		break;
 
 	case CARL9170_RSP_GPIO:
-#ifdef CONFIG_CARL9170_WPC
+#ifdef CPTCFG_CARL9170_WPC
 		if (ar->wps.pbc) {
 			bool state = !!(cmd->gpio.gpio & cpu_to_le32(
 				AR9170_GPIO_PORT_WPS_BUTTON_PRESSED));
@@ -272,7 +272,7 @@ void carl9170_handle_command_response(struct ar9170 *ar, void *buf, u32 len)
 				input_sync(ar->wps.pbc);
 			}
 		}
-#endif /* CONFIG_CARL9170_WPC */
+#endif /* CPTCFG_CARL9170_WPC */
 		break;
 
 	case CARL9170_RSP_BOOT:

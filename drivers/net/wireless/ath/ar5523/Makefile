@@ -1,1 +1,1 @@
-obj-$(CONFIG_AR5523)   := ar5523.o
+obj-$(CPTCFG_AR5523)   := ar5523.o

@@ -7,19 +7,19 @@ ath9k-y +=	beacon.o \
 		link.o \
 		antenna.o
 
-ath9k-$(CONFIG_ATH9K_BTCOEX_SUPPORT) += mci.o
-ath9k-$(CONFIG_COMPAT_ATH9K_RATE_CONTROL) += rc.o
-ath9k-$(CONFIG_ATH9K_PCI) += pci.o
-ath9k-$(CONFIG_ATH9K_AHB) += ahb.o
-ath9k-$(CONFIG_ATH9K_DEBUGFS) += debug.o
-ath9k-$(CONFIG_ATH9K_DFS_DEBUGFS) += dfs_debug.o
-ath9k-$(CONFIG_ATH9K_DFS_CERTIFIED) += \
+ath9k-$(CPTCFG_ATH9K_BTCOEX_SUPPORT) += mci.o
+ath9k-$(CPTCFG_ATH9K_LEGACY_RATE_CONTROL) += rc.o
+ath9k-$(CPTCFG_ATH9K_PCI) += pci.o
+ath9k-$(CPTCFG_ATH9K_AHB) += ahb.o
+ath9k-$(CPTCFG_ATH9K_DEBUGFS) += debug.o
+ath9k-$(CPTCFG_ATH9K_DFS_DEBUGFS) += dfs_debug.o
+ath9k-$(CPTCFG_ATH9K_DFS_CERTIFIED) += \
 		dfs.o \
 		dfs_pattern_detector.o \
 		dfs_pri_detector.o
 ath9k-$(CONFIG_PM_SLEEP) += wow.o
 
-obj-$(CONFIG_ATH9K) += ath9k.o
+obj-$(CPTCFG_ATH9K) += ath9k.o
 
 ath9k_hw-y:=	\
 		ar9002_hw.o \
@@ -43,11 +43,11 @@ ath9k_hw-y:=	\
 		ar9003_eeprom.o \
 		ar9003_paprd.o
 
-ath9k_hw-$(CONFIG_ATH9K_BTCOEX_SUPPORT) += btcoex.o \
+ath9k_hw-$(CPTCFG_ATH9K_BTCOEX_SUPPORT) += btcoex.o \
 					   ar9003_mci.o
-obj-$(CONFIG_ATH9K_HW) += ath9k_hw.o
+obj-$(CPTCFG_ATH9K_HW) += ath9k_hw.o
 
-obj-$(CONFIG_ATH9K_COMMON) += ath9k_common.o
+obj-$(CPTCFG_ATH9K_COMMON) += ath9k_common.o
 ath9k_common-y:=	common.o
 
 ath9k_htc-y +=	htc_hst.o \
@@ -59,6 +59,6 @@ ath9k_htc-y +=	htc_hst.o \
 		htc_drv_init.o \
 		htc_drv_gpio.o
 
-ath9k_htc-$(CONFIG_ATH9K_HTC_DEBUGFS) += htc_drv_debug.o
+ath9k_htc-$(CPTCFG_ATH9K_HTC_DEBUGFS) += htc_drv_debug.o
 
-obj-$(CONFIG_ATH9K_HTC) += ath9k_htc.o
+obj-$(CPTCFG_ATH9K_HTC) += ath9k_htc.o

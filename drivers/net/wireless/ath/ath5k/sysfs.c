@@ -1,7 +1,5 @@
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/device.h>
 #include <linux/pci.h>
 

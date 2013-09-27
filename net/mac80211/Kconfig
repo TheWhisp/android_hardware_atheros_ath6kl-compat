@@ -1,11 +1,12 @@
 config MAC80211
 	tristate "Generic IEEE 802.11 Networking Stack (mac80211)"
+	depends on m
 	depends on CFG80211
-	select CRYPTO
-	select CRYPTO_ARC4
-	select CRYPTO_AES
-	select CRC32
-	select AVERAGE
+	depends on CRYPTO
+	depends on CRYPTO_ARC4
+	depends on CRYPTO_AES
+	depends on CRC32
+	select BACKPORT_AVERAGE
 	---help---
 	  This option enables the hardware independent IEEE 802.11
 	  networking stack.
@@ -93,7 +94,7 @@ config MAC80211_LEDS
 	bool "Enable LED triggers"
 	depends on MAC80211
 	depends on LEDS_CLASS
-	select LEDS_TRIGGERS
+	select BACKPORT_LEDS_TRIGGERS
 	---help---
 	  This option enables a few LED triggers for different
 	  packet receive/transmit events.

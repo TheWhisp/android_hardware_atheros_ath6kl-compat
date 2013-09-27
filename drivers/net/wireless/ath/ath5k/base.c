@@ -40,10 +40,8 @@
  *
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/module.h>
 #include <linux/delay.h>
 #include <linux/dma-mapping.h>
@@ -259,7 +257,7 @@ static void ath5k_reg_notifier(struct wiphy *wiphy,
 /*
  * Returns true for the channel numbers used.
  */
-#ifdef CONFIG_ATH5K_TEST_CHANNELS
+#ifdef CPTCFG_ATH5K_TEST_CHANNELS
 static bool ath5k_is_standard_channel(short chan, enum ieee80211_band band)
 {
 	return true;
@@ -2371,6 +2369,9 @@ ath5k_tx_complete_poll_work(struct work_struct *work)
 	int i;
 	bool needreset = false;
 
+	if (!test_bit(ATH_STAT_STARTED, ah->status))
+		return;
+
 	mutex_lock(&ah->lock);
 
 	for (i = 0; i < ARRAY_SIZE(ah->txqs); i++) {
@@ -2414,7 +2415,7 @@ ath5k_tx_complete_poll_work(struct work_struct *work)
 static const struct ieee80211_iface_limit if_limits[] = {
 	{ .max = 2048,	.types = BIT(NL80211_IFTYPE_STATION) },
 	{ .max = 4,	.types =
-#ifdef CONFIG_MAC80211_MESH
+#ifdef CPTCFG_MAC80211_MESH
 				 BIT(NL80211_IFTYPE_MESH_POINT) |
 #endif
 				 BIT(NL80211_IFTYPE_AP) },
@@ -2641,7 +2642,7 @@ int ath5k_start(struct ieee80211_hw *hw)
 	 * be followed by initialization of the appropriate bits
 	 * and then setup of the interrupt mask.
 	 */
-	ah->curchan = ah->hw->conf.channel;
+	ah->curchan = ah->hw->conf.chandef.chan;
 	ah->imask = AR5K_INT_RXOK
 		| AR5K_INT_RXERR
 		| AR5K_INT_RXEOL
@@ -2678,6 +2679,7 @@ done:
 	mmiowb();
 	mutex_unlock(&ah->lock);
 
+	set_bit(ATH_STAT_STARTED, ah->status);
 	ieee80211_queue_delayed_work(ah->hw, &ah->tx_complete_work,
 			msecs_to_jiffies(ATH5K_TX_COMPLETE_POLL_INT));
 
@@ -2739,6 +2741,7 @@ void ath5k_stop(struct ieee80211_hw *hw)
 
 	ath5k_stop_tasklets(ah);
 
+	clear_bit(ATH_STAT_STARTED, ah->status);
 	cancel_delayed_work_sync(&ah->tx_complete_work);
 
 	if (!ath5k_modparam_no_hw_rfkill_switch)

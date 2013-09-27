@@ -126,7 +126,7 @@ u16 ieee80211_select_queue(struct ieee80211_sub_if_data *sdata,
 	case NL80211_IFTYPE_WDS:
 		ra = sdata->u.wds.remote_addr;
 		break;
-#ifdef CONFIG_MAC80211_MESH
+#ifdef CPTCFG_MAC80211_MESH
 	case NL80211_IFTYPE_MESH_POINT:
 		qos = true;
 		break;

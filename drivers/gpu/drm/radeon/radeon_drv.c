@@ -71,9 +71,12 @@
  *   2.28.0 - r600-eg: Add MEM_WRITE packet support
  *   2.29.0 - R500 FP16 color clear registers
  *   2.30.0 - fix for FMASK texturing
+ *   2.31.0 - Add fastfb support for rs690
+ *   2.32.0 - new info request for rings working
+ *   2.33.0 - Add SI tiling mode array query
  */
 #define KMS_DRIVER_MAJOR	2
-#define KMS_DRIVER_MINOR	30
+#define KMS_DRIVER_MINOR	33
 #define KMS_DRIVER_PATCHLEVEL	0
 int radeon_driver_load_kms(struct drm_device *dev, unsigned long flags);
 int radeon_driver_unload_kms(struct drm_device *dev);
@@ -144,7 +147,7 @@ static inline void radeon_unregister_atpx_handler(void) {}
 #endif
 
 int radeon_no_wb;
-int radeon_modeset = 1;
+int radeon_modeset = -1;
 int radeon_dynclks = -1;
 int radeon_r4xx_atom = 0;
 int radeon_agpmode = 0;
@@ -160,6 +163,7 @@ int radeon_hw_i2c = 0;
 int radeon_pcie_gen2 = -1;
 int radeon_msi = -1;
 int radeon_lockup_timeout = 10000;
+int radeon_fastfb = 0;
 
 MODULE_PARM_DESC(no_wb, "Disable AGP writeback for scratch registers");
 module_param_named(no_wb, radeon_no_wb, int, 0444);
@@ -212,13 +216,16 @@ module_param_named(msi, radeon_msi, int, 0444);
 MODULE_PARM_DESC(lockup_timeout, "GPU lockup timeout in ms (defaul 10000 = 10 seconds, 0 = disable)");
 module_param_named(lockup_timeout, radeon_lockup_timeout, int, 0444);
 
+MODULE_PARM_DESC(fastfb, "Direct FB access for IGP chips (0 = disable, 1 = enable)");
+module_param_named(fastfb, radeon_fastfb, int, 0444);
+
 static struct pci_device_id pciidlist[] = {
 	radeon_PCI_IDS
 };
 
 MODULE_DEVICE_TABLE(pci, pciidlist);
 
-#ifdef CONFIG_DRM_RADEON_UMS
+#ifdef CPTCFG_DRM_RADEON_UMS
 
 static int radeon_suspend(struct drm_device *dev, pm_message_t state)
 {
@@ -374,10 +381,8 @@ static const struct file_operations radeon_driver_kms_fops = {
 static struct drm_driver kms_driver = {
 	.driver_features =
 	    DRIVER_USE_AGP | DRIVER_USE_MTRR | DRIVER_PCI_DMA | DRIVER_SG |
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
-	    DRIVER_PRIME |
-#endif
-	    DRIVER_HAVE_IRQ | DRIVER_HAVE_DMA | DRIVER_IRQ_SHARED | DRIVER_GEM,
+	    DRIVER_HAVE_IRQ | DRIVER_HAVE_DMA | DRIVER_IRQ_SHARED | DRIVER_GEM |
+	    DRIVER_PRIME,
 	.dev_priv_size = 0,
 	.load = radeon_driver_load_kms,
 	.firstopen = radeon_driver_firstopen_kms,
@@ -412,7 +417,6 @@ static struct drm_driver kms_driver = {
 	.dumb_destroy = radeon_mode_dumb_destroy,
 	.fops = &radeon_driver_kms_fops,
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
 	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
 	.prime_fd_to_handle = drm_gem_prime_fd_to_handle,
 	.gem_prime_export = drm_gem_prime_export,
@@ -422,7 +426,6 @@ static struct drm_driver kms_driver = {
 	.gem_prime_import_sg_table = radeon_gem_prime_import_sg_table,
 	.gem_prime_vmap = radeon_gem_prime_vmap,
 	.gem_prime_vunmap = radeon_gem_prime_vunmap,
-#endif
 
 	.name = DRIVER_NAME,
 	.desc = DRIVER_DESC,
@@ -435,7 +438,7 @@ static struct drm_driver kms_driver = {
 static struct drm_driver *driver;
 static struct pci_driver *pdriver;
 
-#ifdef CONFIG_DRM_RADEON_UMS
+#ifdef CPTCFG_DRM_RADEON_UMS
 static struct pci_driver radeon_pci_driver = {
 	.name = DRIVER_NAME,
 	.id_table = pciidlist,
@@ -453,6 +456,16 @@ static struct pci_driver radeon_kms_pci_driver = {
 
 static int __init radeon_init(void)
 {
+#ifdef CONFIG_VGA_CONSOLE
+	if (vgacon_text_force() && radeon_modeset == -1) {
+		DRM_INFO("VGACON disable radeon kernel modesetting.\n");
+		radeon_modeset = 0;
+	}
+#endif
+	/* set to modesetting by default if not nomodeset */
+	if (radeon_modeset == -1)
+		radeon_modeset = 1;
+
 	if (radeon_modeset == 1) {
 		DRM_INFO("radeon kernel modesetting enabled.\n");
 		driver = &kms_driver;
@@ -462,7 +475,7 @@ static int __init radeon_init(void)
 		radeon_register_atpx_handler();
 
 	} else {
-#ifdef CONFIG_DRM_RADEON_UMS
+#ifdef CPTCFG_DRM_RADEON_UMS
 		DRM_INFO("radeon userspace modesetting enabled.\n");
 		driver = &driver_old;
 		pdriver = &radeon_pci_driver;

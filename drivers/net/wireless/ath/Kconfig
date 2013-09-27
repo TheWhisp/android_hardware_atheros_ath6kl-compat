@@ -1,8 +1,10 @@
 config ATH_COMMON
 	tristate
+	depends on m
 
 menuconfig ATH_CARDS
 	tristate "Atheros Wireless Cards"
+	depends on m
 	depends on CFG80211 && (!UML || BROKEN)
 	---help---
 	  This will enable the support for the Atheros wireless drivers.

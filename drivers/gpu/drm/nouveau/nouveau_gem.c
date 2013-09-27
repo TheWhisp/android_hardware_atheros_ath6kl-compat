@@ -55,10 +55,8 @@ nouveau_gem_object_del(struct drm_gem_object *gem)
 		nouveau_bo_unpin(nvbo);
 	}
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
 	if (gem->import_attach)
 		drm_prime_gem_destroy(gem, nvbo->bo.sg);
-#endif
 
 	ttm_bo_unref(&bo);
 

@@ -140,7 +140,7 @@ mxm_shadow_dsm(struct nouveau_mxm *mxm, u8 version)
 }
 #endif
 
-#if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+#if defined(CPTCFG_ACPI_WMI) || defined(CPTCFG_ACPI_WMI_MODULE)
 
 #define WMI_WMMX_GUID "F6CB5C3C-9CAE-4EBD-B577-931EA32A2CC0"
 
@@ -218,7 +218,7 @@ static struct mxm_shadow_h {
 #if defined(CONFIG_ACPI)
 	{ "DSM", mxm_shadow_dsm },
 #endif
-#if defined(CONFIG_ACPI_WMI) || defined(CONFIG_ACPI_WMI_MODULE)
+#if defined(CPTCFG_ACPI_WMI) || defined(CPTCFG_ACPI_WMI_MODULE)
 	{ "WMI", mxm_shadow_wmi },
 #endif
 	{}

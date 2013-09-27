@@ -186,7 +186,7 @@ static struct proto bnep_proto = {
 	.obj_size	= sizeof(struct bt_sock)
 };
 
-#if defined(CONFIG_COMPAT_BT_SOCK_CREATE_NEEDS_KERN)
+#if defined(CPTCFG_BACKPORT_OPTION_BT_SOCK_CREATE_NEEDS_KERN)
 static int bnep_sock_create(struct net *net, struct socket *sock, int protocol,
 			    int kern)
 #else
@@ -239,7 +239,7 @@ int __init bnep_sock_init(void)
 		goto error;
 	}
 
-	err = bt_procfs_init(THIS_MODULE, &init_net, "bnep", &bnep_sk_list, NULL);
+	err = bt_procfs_init(&init_net, "bnep", &bnep_sk_list, NULL);
 	if (err < 0) {
 		BT_ERR("Failed to create BNEP proc file");
 		bt_sock_unregister(BTPROTO_BNEP);
@@ -258,8 +258,6 @@ error:
 void __exit bnep_sock_cleanup(void)
 {
 	bt_procfs_cleanup(&init_net, "bnep");
-	if (bt_sock_unregister(BTPROTO_BNEP) < 0)
-		BT_ERR("Can't unregister BNEP socket");
-
+	bt_sock_unregister(BTPROTO_BNEP);
 	proto_unregister(&bnep_proto);
 }

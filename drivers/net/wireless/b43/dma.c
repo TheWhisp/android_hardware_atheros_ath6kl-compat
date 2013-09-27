@@ -288,7 +288,7 @@ static inline int prev_slot(struct b43_dmaring *ring, int slot)
 	return slot - 1;
 }
 
-#ifdef CONFIG_B43_DEBUG
+#ifdef CPTCFG_B43_DEBUG
 static void update_max_used_slots(struct b43_dmaring *ring,
 				  int current_used_slots)
 {
@@ -419,8 +419,6 @@ static inline
 
 static int alloc_ringmemory(struct b43_dmaring *ring)
 {
-	gfp_t flags = GFP_KERNEL;
-
 	/* The specs call for 4K buffers for 30- and 32-bit DMA with 4K
 	 * alignment and 8K buffers for 64-bit DMA with 8K alignment.
 	 * In practice we could use smaller buffers for the latter, but the
@@ -435,12 +433,9 @@ static int alloc_ringmemory(struct b43_dmaring *ring)
 
 	ring->descbase = dma_alloc_coherent(ring->dev->dev->dma_dev,
 					    ring_mem_size, &(ring->dmabase),
-					    flags);
-	if (!ring->descbase) {
-		b43err(ring->dev->wl, "DMA ringmemory allocation failed\n");
+					    GFP_KERNEL | __GFP_ZERO);
+	if (!ring->descbase)
 		return -ENOMEM;
-	}
-	memset(ring->descbase, 0, ring_mem_size);
 
 	return 0;
 }
@@ -821,14 +816,14 @@ static u64 supported_dma_mask(struct b43_wldev *dev)
 	u16 mmio_base;
 
 	switch (dev->dev->bus_type) {
-#ifdef CONFIG_B43_BCMA
+#ifdef CPTCFG_B43_BCMA
 	case B43_BUS_BCMA:
 		tmp = bcma_aread32(dev->dev->bdev, BCMA_IOST);
 		if (tmp & BCMA_IOST_DMA64)
 			return DMA_BIT_MASK(64);
 		break;
 #endif
-#ifdef CONFIG_B43_SSB
+#ifdef CPTCFG_B43_SSB
 	case B43_BUS_SSB:
 		tmp = ssb_read32(dev->dev->sdev, SSB_TMSHIGH);
 		if (tmp & SSB_TMSHIGH_DMA64)
@@ -911,7 +906,7 @@ struct b43_dmaring *b43_setup_dmaring(struct b43_wldev *dev,
 		} else
 			B43_WARN_ON(1);
 	}
-#ifdef CONFIG_B43_DEBUG
+#ifdef CPTCFG_B43_DEBUG
 	ring->last_injected_overflow = jiffies;
 #endif
 
@@ -1000,7 +995,7 @@ static void b43_destroy_dmaring(struct b43_dmaring *ring,
 	if (!ring)
 		return;
 
-#ifdef CONFIG_B43_DEBUG
+#ifdef CPTCFG_B43_DEBUG
 	{
 		/* Print some statistics. */
 		u64 failed_packets = ring->nr_failed_tx_packets;
@@ -1109,7 +1104,7 @@ static bool b43_dma_translation_in_low_word(struct b43_wldev *dev,
 	if (type != B43_DMA_64BIT)
 		return 1;
 
-#ifdef CONFIG_B43_SSB
+#ifdef CPTCFG_B43_SSB
 	if (dev->dev->bus_type == B43_BUS_SSB &&
 	    dev->dev->sdev->bus->bustype == SSB_BUSTYPE_PCI &&
 	    !(pci_is_pcie(dev->dev->sdev->bus->host_pci) &&
@@ -1133,12 +1128,12 @@ int b43_dma_init(struct b43_wldev *dev)
 		return err;
 
 	switch (dev->dev->bus_type) {
-#ifdef CONFIG_B43_BCMA
+#ifdef CPTCFG_B43_BCMA
 	case B43_BUS_BCMA:
 		dma->translation = bcma_core_dma_translation(dev->dev->bdev);
 		break;
 #endif
-#ifdef CONFIG_B43_SSB
+#ifdef CPTCFG_B43_SSB
 	case B43_BUS_SSB:
 		dma->translation = ssb_dma_translation(dev->dev->sdev);
 		break;
@@ -1147,7 +1142,7 @@ int b43_dma_init(struct b43_wldev *dev)
 	dma->translation_in_low = b43_dma_translation_in_low_word(dev, type);
 
 	dma->parity = true;
-#ifdef CONFIG_B43_BCMA
+#ifdef CPTCFG_B43_BCMA
 	/* TODO: find out which SSB devices need disabling parity */
 	if (dev->dev->bus_type == B43_BUS_BCMA)
 		dma->parity = false;
@@ -1357,7 +1352,7 @@ out_unmap_hdr:
 
 static inline int should_inject_overflow(struct b43_dmaring *ring)
 {
-#ifdef CONFIG_B43_DEBUG
+#ifdef CPTCFG_B43_DEBUG
 	if (unlikely(b43_debug(ring->dev, B43_DBG_DMAOVERFLOW))) {
 		/* Check if we should inject another ringbuffer overflow
 		 * to test handling of this situation in the stack. */
@@ -1372,7 +1367,7 @@ static inline int should_inject_overflow(struct b43_dmaring *ring)
 			return 1;
 		}
 	}
-#endif /* CONFIG_B43_DEBUG */
+#endif /* CPTCFG_B43_DEBUG */
 	return 0;
 }
 
@@ -1487,8 +1482,12 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 	const struct b43_dma_ops *ops;
 	struct b43_dmaring *ring;
 	struct b43_dmadesc_meta *meta;
+	static const struct b43_txstatus fake; /* filled with 0 */
+	const struct b43_txstatus *txstat;
 	int slot, firstused;
 	bool frame_succeed;
+	int skip;
+	static u8 err_out1, err_out2;
 
 	ring = parse_cookie(dev, status->cookie, &slot);
 	if (unlikely(!ring))
@@ -1501,13 +1500,36 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 	firstused = ring->current_slot - ring->used_slots + 1;
 	if (firstused < 0)
 		firstused = ring->nr_slots + firstused;
+
+	skip = 0;
 	if (unlikely(slot != firstused)) {
 		/* This possibly is a firmware bug and will result in
-		 * malfunction, memory leaks and/or stall of DMA functionality. */
-		b43dbg(dev->wl, "Out of order TX status report on DMA ring %d. "
-		       "Expected %d, but got %d\n",
-		       ring->index, firstused, slot);
-		return;
+		 * malfunction, memory leaks and/or stall of DMA functionality.
+		 */
+		if (slot == next_slot(ring, next_slot(ring, firstused))) {
+			/* If a single header/data pair was missed, skip over
+			 * the first two slots in an attempt to recover.
+			 */
+			slot = firstused;
+			skip = 2;
+			if (!err_out1) {
+				/* Report the error once. */
+				b43dbg(dev->wl,
+				       "Skip on DMA ring %d slot %d.\n",
+				       ring->index, slot);
+				err_out1 = 1;
+			}
+		} else {
+			/* More than a single header/data pair were missed.
+			 * Report this error once.
+			 */
+			if (!err_out2)
+				b43dbg(dev->wl,
+				       "Out of order TX status report on DMA ring %d. Expected %d, but got %d\n",
+				       ring->index, firstused, slot);
+			err_out2 = 1;
+			return;
+		}
 	}
 
 	ops = ring->ops;
@@ -1522,11 +1544,13 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 			       slot, firstused, ring->index);
 			break;
 		}
+
 		if (meta->skb) {
 			struct b43_private_tx_info *priv_info =
-				b43_get_priv_tx_info(IEEE80211_SKB_CB(meta->skb));
+			     b43_get_priv_tx_info(IEEE80211_SKB_CB(meta->skb));
 
-			unmap_descbuffer(ring, meta->dmaaddr, meta->skb->len, 1);
+			unmap_descbuffer(ring, meta->dmaaddr,
+					 meta->skb->len, 1);
 			kfree(priv_info->bouncebuffer);
 			priv_info->bouncebuffer = NULL;
 		} else {
@@ -1538,8 +1562,9 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 			struct ieee80211_tx_info *info;
 
 			if (unlikely(!meta->skb)) {
-				/* This is a scatter-gather fragment of a frame, so
-				 * the skb pointer must not be NULL. */
+				/* This is a scatter-gather fragment of a frame,
+				 * so the skb pointer must not be NULL.
+				 */
 				b43dbg(dev->wl, "TX status unexpected NULL skb "
 				       "at slot %d (first=%d) on ring %d\n",
 				       slot, firstused, ring->index);
@@ -1550,10 +1575,19 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 
 			/*
 			 * Call back to inform the ieee80211 subsystem about
-			 * the status of the transmission.
+			 * the status of the transmission. When skipping over
+			 * a missed TX status report, use a status structure
+			 * filled with zeros to indicate that the frame was not
+			 * sent (frame_count 0) and not acknowledged
 			 */
-			frame_succeed = b43_fill_txstatus_report(dev, info, status);
-#ifdef CONFIG_B43_DEBUG
+			if (unlikely(skip))
+				txstat = &fake;
+			else
+				txstat = status;
+
+			frame_succeed = b43_fill_txstatus_report(dev, info,
+								 txstat);
+#ifdef CPTCFG_B43_DEBUG
 			if (frame_succeed)
 				ring->nr_succeed_tx_packets++;
 			else
@@ -1580,12 +1614,14 @@ void b43_dma_handle_txstatus(struct b43_wldev *dev,
 		/* Everything unmapped and free'd. So it's not used anymore. */
 		ring->used_slots--;
 
-		if (meta->is_last_fragment) {
+		if (meta->is_last_fragment && !skip) {
 			/* This is the last scatter-gather
 			 * fragment of the frame. We are done. */
 			break;
 		}
 		slot = next_slot(ring, slot);
+		if (skip > 0)
+			--skip;
 	}
 	if (ring->stopped) {
 		B43_WARN_ON(free_slots(ring) < TX_SLOTS_PER_FRAME);
@@ -1690,6 +1726,25 @@ drop_recycle_buffer:
 	/* Poison and recycle the RX buffer. */
 	b43_poison_rx_buffer(ring, skb);
 	sync_descbuffer_for_device(ring, dmaaddr, ring->rx_buffersize);
+}
+
+void b43_dma_handle_rx_overflow(struct b43_dmaring *ring)
+{
+	int current_slot, previous_slot;
+
+	B43_WARN_ON(ring->tx);
+
+	/* Device has filled all buffers, drop all packets and let TCP
+	 * decrease speed.
+	 * Decrement RX index by one will let the device to see all slots
+	 * as free again
+	 */
+	/*
+	*TODO: How to increase rx_drop in mac80211?
+	*/
+	current_slot = ring->ops->get_current_rxslot(ring);
+	previous_slot = prev_slot(ring, current_slot);
+	ring->ops->set_current_rxslot(ring, previous_slot);
 }
 
 void b43_dma_rx(struct b43_dmaring *ring)

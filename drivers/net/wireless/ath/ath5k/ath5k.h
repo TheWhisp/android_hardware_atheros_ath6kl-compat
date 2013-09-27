@@ -1268,9 +1268,9 @@ struct ath5k_hw {
 	s8			rate_idx[IEEE80211_NUM_BANDS][AR5K_MAX_RATES];
 	enum nl80211_iftype	opmode;
 
-#ifdef CONFIG_ATH5K_DEBUG
+#ifdef CPTCFG_ATH5K_DEBUG
 	struct ath5k_dbg_info	debug;		/* debug info */
-#endif /* CONFIG_ATH5K_DEBUG */
+#endif /* CPTCFG_ATH5K_DEBUG */
 
 	struct ath5k_buf	*bufptr;	/* allocated buffer ptr */
 	struct ath5k_desc	*desc;		/* TX/RX descriptors */
@@ -1523,7 +1523,8 @@ int ath5k_hw_dma_stop(struct ath5k_hw *ah);
 /* EEPROM access functions */
 int ath5k_eeprom_init(struct ath5k_hw *ah);
 void ath5k_eeprom_detach(struct ath5k_hw *ah);
-
+int ath5k_eeprom_mode_from_channel(struct ath5k_hw *ah,
+		struct ieee80211_channel *channel);
 
 /* Protocol Control Unit Functions */
 /* Helpers */

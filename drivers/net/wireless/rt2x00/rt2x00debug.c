@@ -174,7 +174,7 @@ void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
 	do_gettimeofday(&timestamp);
 
 	if (skb_queue_len(&intf->frame_dump_skbqueue) > 20) {
-		DEBUG(rt2x00dev, "txrx dump queue length exceeded.\n");
+		rt2x00_dbg(rt2x00dev, "txrx dump queue length exceeded\n");
 		return;
 	}
 
@@ -185,7 +185,7 @@ void rt2x00debug_dump_frame(struct rt2x00_dev *rt2x00dev,
 	skbcopy = alloc_skb(sizeof(*dump_hdr) + skbdesc->desc_len + data_len,
 			    GFP_ATOMIC);
 	if (!skbcopy) {
-		DEBUG(rt2x00dev, "Failed to copy skb for dump.\n");
+		rt2x00_dbg(rt2x00dev, "Failed to copy skb for dump\n");
 		return;
 	}
 
@@ -382,7 +382,7 @@ static const struct file_operations rt2x00debug_fop_queue_stats = {
 	.llseek		= default_llseek,
 };
 
-#ifdef CONFIG_RT2X00_LIB_CRYPTO
+#ifdef CPTCFG_RT2X00_LIB_CRYPTO
 static ssize_t rt2x00debug_read_crypto_stats(struct file *file,
 					     char __user *buf,
 					     size_t length,
@@ -657,7 +657,7 @@ void rt2x00debug_register(struct rt2x00_dev *rt2x00dev)
 
 	intf = kzalloc(sizeof(struct rt2x00debug_intf), GFP_KERNEL);
 	if (!intf) {
-		ERROR(rt2x00dev, "Failed to allocate debug handler.\n");
+		rt2x00_err(rt2x00dev, "Failed to allocate debug handler\n");
 		return;
 	}
 
@@ -749,7 +749,7 @@ void rt2x00debug_register(struct rt2x00_dev *rt2x00dev)
 	    debugfs_create_file("queue", S_IRUSR, intf->queue_folder,
 				intf, &rt2x00debug_fop_queue_stats);
 
-#ifdef CONFIG_RT2X00_LIB_CRYPTO
+#ifdef CPTCFG_RT2X00_LIB_CRYPTO
 	if (test_bit(CAPABILITY_HW_CRYPTO, &rt2x00dev->cap_flags))
 		intf->crypto_stats_entry =
 		    debugfs_create_file("crypto", S_IRUGO, intf->queue_folder,
@@ -760,7 +760,7 @@ void rt2x00debug_register(struct rt2x00_dev *rt2x00dev)
 
 exit:
 	rt2x00debug_deregister(rt2x00dev);
-	ERROR(rt2x00dev, "Failed to register debug handler.\n");
+	rt2x00_err(rt2x00dev, "Failed to register debug handler\n");
 }
 
 void rt2x00debug_deregister(struct rt2x00_dev *rt2x00dev)
@@ -772,7 +772,7 @@ void rt2x00debug_deregister(struct rt2x00_dev *rt2x00dev)
 
 	skb_queue_purge(&intf->frame_dump_skbqueue);
 
-#ifdef CONFIG_RT2X00_LIB_CRYPTO
+#ifdef CPTCFG_RT2X00_LIB_CRYPTO
 	debugfs_remove(intf->crypto_stats_entry);
 #endif
 	debugfs_remove(intf->queue_stats_entry);

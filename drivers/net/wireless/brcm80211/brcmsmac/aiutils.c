@@ -16,10 +16,8 @@
  * File contents: support functions for PCI/PCIe
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/delay.h>
 
 #include <defs.h>
@@ -319,12 +317,6 @@
 
 #define	IS_SIM(chippkg)	\
 	((chippkg == HDLSIM_PKG_ID) || (chippkg == HWSIM_PKG_ID))
-
-#ifdef DEBUG
-#define	SI_MSG(fmt, ...)	pr_debug(fmt, ##__VA_ARGS__)
-#else
-#define	SI_MSG(fmt, ...)	no_printk(fmt, ##__VA_ARGS__)
-#endif				/* DEBUG */
 
 #define	GOODCOREADDR(x, b) \
 	(((x) >= (b)) && ((x) < ((b) + SI_MAXCORES * SI_CORE_SIZE)) && \

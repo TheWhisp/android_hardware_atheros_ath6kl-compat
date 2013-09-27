@@ -43,7 +43,7 @@ static void bcma_host_soc_write32(struct bcma_device *core, u16 offset,
 	writel(value, core->io_addr + offset);
 }
 
-#ifdef CONFIG_BCMA_BLOCKIO
+#ifdef CPTCFG_BCMA_BLOCKIO
 static void bcma_host_soc_block_read(struct bcma_device *core, void *buffer,
 				     size_t count, u16 offset, u8 reg_width)
 {
@@ -130,7 +130,7 @@ static void bcma_host_soc_block_write(struct bcma_device *core,
 		WARN_ON(1);
 	}
 }
-#endif /* CONFIG_BCMA_BLOCKIO */
+#endif /* CPTCFG_BCMA_BLOCKIO */
 
 static u32 bcma_host_soc_aread32(struct bcma_device *core, u16 offset)
 {
@@ -150,7 +150,7 @@ static const struct bcma_host_ops bcma_host_soc_ops = {
 	.write8		= bcma_host_soc_write8,
 	.write16	= bcma_host_soc_write16,
 	.write32	= bcma_host_soc_write32,
-#ifdef CONFIG_BCMA_BLOCKIO
+#ifdef CPTCFG_BCMA_BLOCKIO
 	.block_read	= bcma_host_soc_block_read,
 	.block_write	= bcma_host_soc_block_write,
 #endif

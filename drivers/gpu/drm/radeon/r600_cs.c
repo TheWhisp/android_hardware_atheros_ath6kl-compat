@@ -2313,7 +2313,7 @@ int r600_cs_parse(struct radeon_cs_parser *p)
 	return 0;
 }
 
-#ifdef CONFIG_DRM_RADEON_UMS
+#ifdef CPTCFG_DRM_RADEON_UMS
 
 /**
  * cs_parser_fini() - clean parser states
