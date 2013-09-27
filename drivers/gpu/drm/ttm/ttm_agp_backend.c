@@ -29,10 +29,8 @@
  *          Keith Packard.
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) "[TTM] " fmt
 
-#include <linux/printk.h>
 #include <drm/ttm/ttm_module.h>
 #include <drm/ttm/ttm_bo_driver.h>
 #include <drm/ttm/ttm_page_alloc.h>

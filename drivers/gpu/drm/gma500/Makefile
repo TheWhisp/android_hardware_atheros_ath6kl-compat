@@ -1,7 +1,7 @@
 #
 #	KMS driver for the GMA500
 #
-ccflags-y += -I$(srctree)/include/drm
+ccflags-y += -I$(backport_srctree)/include/drm
 
 gma500_gfx-y += \
 	  accel_2d.o \
@@ -26,20 +26,20 @@ gma500_gfx-y += \
 
 gma500_gfx-$(CONFIG_ACPI) +=  opregion.o \
 
-gma500_gfx-$(CONFIG_DRM_GMA3600) +=  cdv_device.o \
+gma500_gfx-$(CPTCFG_DRM_GMA3600) +=  cdv_device.o \
 	  cdv_intel_crt.o \
 	  cdv_intel_display.o \
 	  cdv_intel_hdmi.o \
 	  cdv_intel_lvds.o \
 	  cdv_intel_dp.o
 
-gma500_gfx-$(CONFIG_DRM_GMA600) += oaktrail_device.o \
+gma500_gfx-$(CPTCFG_DRM_GMA600) += oaktrail_device.o \
 	  oaktrail_crtc.o \
 	  oaktrail_lvds.o \
 	  oaktrail_hdmi.o \
 	  oaktrail_hdmi_i2c.o
 
-gma500_gfx-$(CONFIG_DRM_MEDFIELD) += mdfld_device.o \
+gma500_gfx-$(CPTCFG_DRM_MEDFIELD) += mdfld_device.o \
 	  mdfld_output.o \
 	  mdfld_intel_display.o \
 	  mdfld_dsi_output.o \
@@ -49,4 +49,4 @@ gma500_gfx-$(CONFIG_DRM_MEDFIELD) += mdfld_device.o \
 	  mdfld_tmd_vid.o \
 	  tc35876x-dsi-lvds.o
 
-obj-$(CONFIG_COMPAT_DRM_GMA500) += gma500_gfx.o
+obj-$(CPTCFG_DRM_GMA500) += gma500_gfx.o

@@ -57,9 +57,8 @@ int ssb_watchdog_register(struct ssb_bus *bus)
 					     bus->busnumber, &wdt,
 					     sizeof(wdt));
 	if (IS_ERR(pdev)) {
-		ssb_dprintk(KERN_INFO PFX
-			    "can not register watchdog device, err: %li\n",
-			    PTR_ERR(pdev));
+		ssb_dbg("can not register watchdog device, err: %li\n",
+			PTR_ERR(pdev));
 		return PTR_ERR(pdev);
 	}
 
@@ -171,7 +170,7 @@ u32 ssb_gpio_polarity(struct ssb_bus *bus, u32 mask, u32 value)
 }
 EXPORT_SYMBOL(ssb_gpio_polarity);
 
-#ifdef CONFIG_SSB_DRIVER_GIGE
+#ifdef CPTCFG_SSB_DRIVER_GIGE
 static int gige_pci_init_callback(struct ssb_bus *bus, unsigned long data)
 {
 	struct pci_dev *pdev = (struct pci_dev *)data;
@@ -194,7 +193,7 @@ static int gige_pci_init_callback(struct ssb_bus *bus, unsigned long data)
 
 	return -ENODEV;
 }
-#endif /* CONFIG_SSB_DRIVER_GIGE */
+#endif /* CPTCFG_SSB_DRIVER_GIGE */
 
 int ssb_pcibios_plat_dev_init(struct pci_dev *dev)
 {
@@ -203,7 +202,7 @@ int ssb_pcibios_plat_dev_init(struct pci_dev *dev)
 	err = ssb_pcicore_plat_dev_init(dev);
 	if (!err)
 		return 0;
-#ifdef CONFIG_SSB_DRIVER_GIGE
+#ifdef CPTCFG_SSB_DRIVER_GIGE
 	err = ssb_for_each_bus_call((unsigned long)dev, gige_pci_init_callback);
 	if (err >= 0)
 		return err;
@@ -213,7 +212,7 @@ int ssb_pcibios_plat_dev_init(struct pci_dev *dev)
 	return -ENODEV;
 }
 
-#ifdef CONFIG_SSB_DRIVER_GIGE
+#ifdef CPTCFG_SSB_DRIVER_GIGE
 static int gige_map_irq_callback(struct ssb_bus *bus, unsigned long data)
 {
 	const struct pci_dev *pdev = (const struct pci_dev *)data;
@@ -236,7 +235,7 @@ static int gige_map_irq_callback(struct ssb_bus *bus, unsigned long data)
 
 	return -ENODEV;
 }
-#endif /* CONFIG_SSB_DRIVER_GIGE */
+#endif /* CPTCFG_SSB_DRIVER_GIGE */
 
 int ssb_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 {
@@ -248,7 +247,7 @@ int ssb_pcibios_map_irq(const struct pci_dev *dev, u8 slot, u8 pin)
 	res = ssb_pcicore_pcibios_map_irq(dev, slot, pin);
 	if (res >= 0)
 		return res;
-#ifdef CONFIG_SSB_DRIVER_GIGE
+#ifdef CPTCFG_SSB_DRIVER_GIGE
 	res = ssb_for_each_bus_call((unsigned long)dev, gige_map_irq_callback);
 	if (res >= 0)
 		return res;

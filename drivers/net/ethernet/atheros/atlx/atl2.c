@@ -365,9 +365,10 @@ static inline void atl2_irq_disable(struct atl2_adapter *adapter)
     synchronize_irq(adapter->pdev->irq);
 }
 
+#if defined(NETIF_F_HW_VLAN_TX) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 static void __atl2_vlan_mode(netdev_features_t features, u32 *ctrl)
 {
-	if (features & NETIF_F_HW_VLAN_RX) {
+	if (features & NETIF_F_HW_VLAN_CTAG_RX) {
 		/* enable VLAN tag insert/strip */
 		*ctrl |= MAC_CTRL_RMV_VLAN;
 	} else {
@@ -390,10 +391,13 @@ static void atl2_vlan_mode(struct net_device *netdev,
 
 	atl2_irq_enable(adapter);
 }
+#endif
 
 static void atl2_restore_vlan(struct atl2_adapter *adapter)
 {
+#if defined(NETIF_F_HW_VLAN_TX) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 	atl2_vlan_mode(adapter->netdev, adapter->netdev->features);
+#endif
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
@@ -404,10 +408,10 @@ static netdev_features_t atl2_fix_features(struct net_device *netdev,
 	 * Since there is no support for separate rx/tx vlan accel
 	 * enable/disable make sure tx flag is always in same state as rx.
 	 */
-	if (features & NETIF_F_HW_VLAN_RX)
-		features |= NETIF_F_HW_VLAN_TX;
+	if (features & NETIF_F_HW_VLAN_CTAG_RX)
+		features |= NETIF_F_HW_VLAN_CTAG_TX;
 	else
-		features &= ~NETIF_F_HW_VLAN_TX;
+		features &= ~NETIF_F_HW_VLAN_CTAG_TX;
 
 	return features;
 }
@@ -417,7 +421,7 @@ static int atl2_set_features(struct net_device *netdev,
 {
 	netdev_features_t changed = netdev->features ^ features;
 
-	if (changed & NETIF_F_HW_VLAN_RX)
+	if (changed & NETIF_F_HW_VLAN_CTAG_RX)
 		atl2_vlan_mode(netdev, features);
 
 	return 0;
@@ -443,9 +447,6 @@ static void atl2_intr_rx(struct atl2_adapter *adapter)
 			/* alloc new buffer */
 			skb = netdev_alloc_skb_ip_align(netdev, rx_size);
 			if (NULL == skb) {
-				printk(KERN_WARNING
-					"%s: Mem squeeze, deferring packet.\n",
-					netdev->name);
 				/*
 				 * Check that some rx space is free. If not,
 				 * free one and mark stats->rx_dropped++.
@@ -461,7 +462,7 @@ static void atl2_intr_rx(struct atl2_adapter *adapter)
 					((rxd->status.vtag&7) << 13) |
 					((rxd->status.vtag&8) << 9);
 
-				__vlan_hwaccel_put_tag(skb, vlan_tag);
+				__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q), vlan_tag);
 			}
 			netif_rx(skb);
 			netdev->stats.rx_bytes += rx_size;
@@ -896,7 +897,7 @@ static netdev_tx_t atl2_xmit_frame(struct sk_buff *skb,
 			skb->len-copy_len);
 		offset = ((u32)(skb->len-copy_len + 3) & ~3);
 	}
-#ifdef NETIF_F_HW_VLAN_TX
+#ifdef NETIF_F_HW_VLAN_CTAG_TX
 	if (vlan_tx_tag_present(skb)) {
 		u16 vlan_tag = vlan_tx_tag_get(skb);
 		vlan_tag = (vlan_tag << 4) |
@@ -1159,7 +1160,9 @@ static void atl2_setup_mac_ctrl(struct atl2_adapter *adapter)
 		MAC_CTRL_PRMLEN_SHIFT);
 
 	/* vlan */
+#if defined(NETIF_F_HW_VLAN_TX) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
 	__atl2_vlan_mode(netdev->features, &value);
+#endif
 
 	/* filter mode */
 	value |= MAC_CTRL_BC_EN;
@@ -1425,10 +1428,10 @@ static int atl2_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 	err = -EIO;
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
-	netdev->hw_features = NETIF_F_SG | NETIF_F_HW_VLAN_RX;
+	netdev->hw_features = NETIF_F_SG | NETIF_F_HW_VLAN_CTAG_RX;
 #endif
 #if defined(NETIF_F_HW_VLAN_TX) || (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,39))
-	netdev->features |= (NETIF_F_HW_VLAN_TX | NETIF_F_HW_VLAN_RX);
+	netdev->features |= (NETIF_F_HW_VLAN_CTAG_TX | NETIF_F_HW_VLAN_CTAG_RX);
 #endif
 
 	/* Init PHY as early as possible due to power saving issue  */
@@ -1849,13 +1852,6 @@ static int atl2_set_settings(struct net_device *netdev,
 	return 0;
 }
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
-static u32 atl2_get_tx_csum(struct net_device *netdev)
-{
-	return (netdev->features & NETIF_F_HW_CSUM) != 0;
-}
-#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)) */
-
 static u32 atl2_get_msglevel(struct net_device *netdev)
 {
 	return 0;
@@ -2109,6 +2105,13 @@ static int atl2_nway_reset(struct net_device *netdev)
 		atl2_reinit_locked(adapter);
 	return 0;
 }
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39))
+static u32 atl2_get_tx_csum(struct net_device *netdev)
+{
+	return (netdev->features & NETIF_F_HW_CSUM) != 0;
+}
+#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,39)) */
 
 static const struct ethtool_ops atl2_ethtool_ops = {
 	.get_settings		= atl2_get_settings,

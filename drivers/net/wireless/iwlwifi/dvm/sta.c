@@ -178,7 +178,7 @@ bool iwl_is_ht40_tx_allowed(struct iwl_priv *priv,
 	if (!ctx->ht.enabled || !ctx->ht.is_40mhz)
 		return false;
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 	if (priv->disable_ht40)
 		return false;
 #endif
@@ -695,6 +695,7 @@ void iwl_clear_ucode_stations(struct iwl_priv *priv,
 void iwl_restore_stations(struct iwl_priv *priv, struct iwl_rxon_context *ctx)
 {
 	struct iwl_addsta_cmd sta_cmd;
+	static const struct iwl_link_quality_cmd zero_lq = {};
 	struct iwl_link_quality_cmd lq;
 	int i;
 	bool found = false;
@@ -733,7 +734,9 @@ void iwl_restore_stations(struct iwl_priv *priv, struct iwl_rxon_context *ctx)
 				else
 					memcpy(&lq, priv->stations[i].lq,
 					       sizeof(struct iwl_link_quality_cmd));
-				send_lq = true;
+
+				if (memcmp(&lq, &zero_lq, sizeof(lq)))
+					send_lq = true;
 			}
 			spin_unlock_bh(&priv->sta_lock);
 			ret = iwl_send_add_sta(priv, &sta_cmd, CMD_SYNC);
@@ -798,7 +801,7 @@ void iwl_dealloc_bcast_stations(struct iwl_priv *priv)
 	spin_unlock_bh(&priv->sta_lock);
 }
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 static void iwl_dump_lq_cmd(struct iwl_priv *priv,
 			   struct iwl_link_quality_cmd *lq)
 {

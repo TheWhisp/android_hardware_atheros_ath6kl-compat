@@ -125,8 +125,7 @@ static u16 pcidev_to_chipid(struct pci_dev *pci_dev)
 		chipid_fallback = 0x4401;
 		break;
 	default:
-		ssb_printk(KERN_ERR PFX
-			   "PCI-ID not in fallback list\n");
+		ssb_err("PCI-ID not in fallback list\n");
 	}
 
 	return chipid_fallback;
@@ -152,8 +151,7 @@ static u8 chipid_to_nrcores(u16 chipid)
 	case 0x4704:
 		return 9;
 	default:
-		ssb_printk(KERN_ERR PFX
-			   "CHIPID not in nrcores fallback list\n");
+		ssb_err("CHIPID not in nrcores fallback list\n");
 	}
 
 	return 1;
@@ -209,7 +207,7 @@ void ssb_iounmap(struct ssb_bus *bus)
 		iounmap(bus->mmio);
 		break;
 	case SSB_BUSTYPE_PCI:
-#ifdef CONFIG_SSB_PCIHOST
+#ifdef CPTCFG_SSB_PCIHOST
 		pci_iounmap(bus->host_pci, bus->mmio);
 #else
 		SSB_BUG_ON(1); /* Can't reach this code. */
@@ -235,7 +233,7 @@ static void __iomem *ssb_ioremap(struct ssb_bus *bus,
 		mmio = ioremap(baseaddr, SSB_CORE_SIZE);
 		break;
 	case SSB_BUSTYPE_PCI:
-#ifdef CONFIG_SSB_PCIHOST
+#ifdef CPTCFG_SSB_PCIHOST
 		mmio = pci_iomap(bus->host_pci, 0, ~0UL);
 #else
 		SSB_BUG_ON(1); /* Can't reach this code. */
@@ -257,7 +255,7 @@ static int we_support_multiple_80211_cores(struct ssb_bus *bus)
 	 * pins on the second core. Be careful and reject them here.
 	 */
 
-#ifdef CONFIG_SSB_PCIHOST
+#ifdef CPTCFG_SSB_PCIHOST
 	if (bus->bustype == SSB_BUSTYPE_PCI) {
 		if (bus->host_pci->vendor == PCI_VENDOR_ID_BROADCOM &&
 		    ((bus->host_pci->device == 0x4313) ||
@@ -266,7 +264,7 @@ static int we_support_multiple_80211_cores(struct ssb_bus *bus)
 		     (bus->host_pci->device == 0x4324)))
 			return 1;
 	}
-#endif /* CONFIG_SSB_PCIHOST */
+#endif /* CPTCFG_SSB_PCIHOST */
 	return 0;
 }
 
@@ -320,15 +318,13 @@ int ssb_bus_scan(struct ssb_bus *bus,
 			bus->chip_package = 0;
 		}
 	}
-	ssb_printk(KERN_INFO PFX "Found chip with id 0x%04X, rev 0x%02X and "
-		   "package 0x%02X\n", bus->chip_id, bus->chip_rev,
-		   bus->chip_package);
+	ssb_info("Found chip with id 0x%04X, rev 0x%02X and package 0x%02X\n",
+		 bus->chip_id, bus->chip_rev, bus->chip_package);
 	if (!bus->nr_devices)
 		bus->nr_devices = chipid_to_nrcores(bus->chip_id);
 	if (bus->nr_devices > ARRAY_SIZE(bus->devices)) {
-		ssb_printk(KERN_ERR PFX
-			   "More than %d ssb cores found (%d)\n",
-			   SSB_MAX_NR_CORES, bus->nr_devices);
+		ssb_err("More than %d ssb cores found (%d)\n",
+			SSB_MAX_NR_CORES, bus->nr_devices);
 		goto err_unmap;
 	}
 	if (bus->bustype == SSB_BUSTYPE_SSB) {
@@ -370,44 +366,40 @@ int ssb_bus_scan(struct ssb_bus *bus,
 			nr_80211_cores++;
 			if (nr_80211_cores > 1) {
 				if (!we_support_multiple_80211_cores(bus)) {
-					ssb_dprintk(KERN_INFO PFX "Ignoring additional "
-						    "802.11 core\n");
+					ssb_dbg("Ignoring additional 802.11 core\n");
 					continue;
 				}
 			}
 			break;
 		case SSB_DEV_EXTIF:
-#ifdef CONFIG_SSB_DRIVER_EXTIF
+#ifdef CPTCFG_SSB_DRIVER_EXTIF
 			if (bus->extif.dev) {
-				ssb_printk(KERN_WARNING PFX
-					   "WARNING: Multiple EXTIFs found\n");
+				ssb_warn("WARNING: Multiple EXTIFs found\n");
 				break;
 			}
 			bus->extif.dev = dev;
-#endif /* CONFIG_SSB_DRIVER_EXTIF */
+#endif /* CPTCFG_SSB_DRIVER_EXTIF */
 			break;
 		case SSB_DEV_CHIPCOMMON:
 			if (bus->chipco.dev) {
-				ssb_printk(KERN_WARNING PFX
-					   "WARNING: Multiple ChipCommon found\n");
+				ssb_warn("WARNING: Multiple ChipCommon found\n");
 				break;
 			}
 			bus->chipco.dev = dev;
 			break;
 		case SSB_DEV_MIPS:
 		case SSB_DEV_MIPS_3302:
-#ifdef CONFIG_SSB_DRIVER_MIPS
+#ifdef CPTCFG_SSB_DRIVER_MIPS
 			if (bus->mipscore.dev) {
-				ssb_printk(KERN_WARNING PFX
-					   "WARNING: Multiple MIPS cores found\n");
+				ssb_warn("WARNING: Multiple MIPS cores found\n");
 				break;
 			}
 			bus->mipscore.dev = dev;
-#endif /* CONFIG_SSB_DRIVER_MIPS */
+#endif /* CPTCFG_SSB_DRIVER_MIPS */
 			break;
 		case SSB_DEV_PCI:
 		case SSB_DEV_PCIE:
-#ifdef CONFIG_SSB_DRIVER_PCICORE
+#ifdef CPTCFG_SSB_DRIVER_PCICORE
 			if (bus->bustype == SSB_BUSTYPE_PCI) {
 				/* Ignore PCI cores on PCI-E cards.
 				 * Ignore PCI-E cores on PCI cards. */
@@ -420,12 +412,11 @@ int ssb_bus_scan(struct ssb_bus *bus,
 				}
 			}
 			if (bus->pcicore.dev) {
-				ssb_printk(KERN_WARNING PFX
-					   "WARNING: Multiple PCI(E) cores found\n");
+				ssb_warn("WARNING: Multiple PCI(E) cores found\n");
 				break;
 			}
 			bus->pcicore.dev = dev;
-#endif /* CONFIG_SSB_DRIVER_PCICORE */
+#endif /* CPTCFG_SSB_DRIVER_PCICORE */
 			break;
 		case SSB_DEV_ETHERNET:
 			if (bus->bustype == SSB_BUSTYPE_PCI) {

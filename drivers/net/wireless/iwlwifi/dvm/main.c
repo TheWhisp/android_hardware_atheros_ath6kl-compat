@@ -27,10 +27,8 @@
  *
  *****************************************************************************/
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/init.h>
@@ -71,7 +69,7 @@
  */
 #define DRV_DESCRIPTION	"Intel(R) Wireless WiFi Link AGN driver for Linux"
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 #define VD "d"
 #else
 #define VD
@@ -1137,7 +1135,7 @@ static void iwl_uninit_drv(struct iwl_priv *priv)
 	kfree(priv->beacon_cmd);
 	kfree(rcu_dereference_raw(priv->noa_data));
 	iwl_calib_free_results(priv);
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 	kfree(priv->wowlan_sram);
 #endif
 }
@@ -1157,34 +1155,34 @@ static void iwl_set_hw_params(struct iwl_priv *priv)
 /* show what optional capabilities we have */
 static void iwl_option_config(struct iwl_priv *priv)
 {
-#ifdef CONFIG_IWLWIFI_DEBUG
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEBUG enabled\n");
+#ifdef CPTCFG_IWLWIFI_DEBUG
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEBUG enabled\n");
 #else
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEBUG disabled\n");
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEBUG disabled\n");
 #endif
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEBUGFS enabled\n");
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEBUGFS enabled\n");
 #else
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEBUGFS disabled\n");
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEBUGFS disabled\n");
 #endif
 
-#ifdef CONFIG_IWLWIFI_DEVICE_TRACING
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEVICE_TRACING enabled\n");
+#ifdef CPTCFG_IWLWIFI_DEVICE_TRACING
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEVICE_TRACING enabled\n");
 #else
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEVICE_TRACING disabled\n");
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEVICE_TRACING disabled\n");
 #endif
 
-#ifdef CONFIG_IWLWIFI_DEVICE_TESTMODE
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEVICE_TESTMODE enabled\n");
+#ifdef CPTCFG_IWLWIFI_DEVICE_TESTMODE
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEVICE_TESTMODE enabled\n");
 #else
-	IWL_INFO(priv, "CONFIG_IWLWIFI_DEVICE_TESTMODE disabled\n");
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_DEVICE_TESTMODE disabled\n");
 #endif
 
-#ifdef CONFIG_IWLWIFI_P2P
-	IWL_INFO(priv, "CONFIG_IWLWIFI_P2P enabled\n");
+#ifdef CPTCFG_IWLWIFI_P2P
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_P2P enabled\n");
 #else
-	IWL_INFO(priv, "CONFIG_IWLWIFI_P2P disabled\n");
+	IWL_INFO(priv, "CPTCFG_IWLWIFI_P2P disabled\n");
 #endif
 }
 
@@ -1320,7 +1318,7 @@ static struct iwl_op_mode *iwl_op_mode_dvm_start(struct iwl_trans *trans,
 
 	ucode_flags = fw->ucode_capa.flags;
 
-#ifndef CONFIG_IWLWIFI_P2P
+#ifndef CPTCFG_IWLWIFI_P2P
 	ucode_flags &= ~IWL_UCODE_TLV_FLAGS_P2P;
 #endif
 
@@ -1797,7 +1795,7 @@ static int iwl_print_last_event_logs(struct iwl_priv *priv, u32 capacity,
 #define DEFAULT_DUMP_EVENT_LOG_ENTRIES (20)
 
 int iwl_dump_nic_event_log(struct iwl_priv *priv, bool full_log,
-			    char **buf, bool display)
+			    char **buf)
 {
 	u32 base;       /* SRAM byte address of event log header */
 	u32 capacity;   /* event log capacity in # entries */
@@ -1856,7 +1854,7 @@ int iwl_dump_nic_event_log(struct iwl_priv *priv, bool full_log,
 		return pos;
 	}
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (!(iwl_have_debug_level(IWL_DL_FW_ERRORS)) && !full_log)
 		size = (size > DEFAULT_DUMP_EVENT_LOG_ENTRIES)
 			? DEFAULT_DUMP_EVENT_LOG_ENTRIES : size;
@@ -1867,8 +1865,8 @@ int iwl_dump_nic_event_log(struct iwl_priv *priv, bool full_log,
 	IWL_ERR(priv, "Start IWL Event Log Dump: display last %u entries\n",
 		size);
 
-#ifdef CONFIG_IWLWIFI_DEBUG
-	if (display) {
+#ifdef CPTCFG_IWLWIFI_DEBUG
+	if (buf) {
 		if (full_log)
 			bufsz = capacity * 48;
 		else
@@ -1907,7 +1905,7 @@ static void iwlagn_fw_error(struct iwl_priv *priv, bool ondemand)
 	unsigned int reload_msec;
 	unsigned long reload_jiffies;
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (iwl_have_debug_level(IWL_DL_FW_ERRORS))
 		iwl_print_rx_config_cmd(priv, IWL_RXON_CTX_BSS);
 #endif
@@ -1964,7 +1962,7 @@ static void iwl_nic_error(struct iwl_op_mode *op_mode)
 		priv->fw->fw_version);
 
 	iwl_dump_nic_error_log(priv);
-	iwl_dump_nic_event_log(priv, false, NULL, false);
+	iwl_dump_nic_event_log(priv, false, NULL);
 
 	iwlagn_fw_error(priv, false);
 }

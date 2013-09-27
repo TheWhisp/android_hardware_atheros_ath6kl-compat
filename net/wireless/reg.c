@@ -42,11 +42,9 @@
  *
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/kernel.h>
-#include <linux/printk.h>
 #include <linux/export.h>
 #include <linux/slab.h>
 #include <linux/list.h>
@@ -60,7 +58,7 @@
 #include "regdb.h"
 #include "nl80211.h"
 
-#ifdef CONFIG_CFG80211_REG_DEBUG
+#ifdef CPTCFG_CFG80211_REG_DEBUG
 #define REG_DBG_PRINT(format, args...)			\
 	printk(KERN_DEBUG pr_fmt(format), ##args)
 #else
@@ -186,14 +184,14 @@ static const struct ieee80211_regdomain world_regdom = {
 			NL80211_RRF_NO_IBSS |
 			NL80211_RRF_NO_OFDM),
 		/* IEEE 802.11a, channel 36..48 */
-		REG_RULE(5180-10, 5240+10, 40, 6, 20,
+		REG_RULE(5180-10, 5240+10, 80, 6, 20,
                         NL80211_RRF_PASSIVE_SCAN |
                         NL80211_RRF_NO_IBSS),
 
-		/* NB: 5260 MHz - 5700 MHz requies DFS */
+		/* NB: 5260 MHz - 5700 MHz requires DFS */
 
 		/* IEEE 802.11a, channel 149..165 */
-		REG_RULE(5745-10, 5825+10, 40, 6, 20,
+		REG_RULE(5745-10, 5825+10, 80, 6, 20,
 			NL80211_RRF_PASSIVE_SCAN |
 			NL80211_RRF_NO_IBSS),
 
@@ -364,7 +362,7 @@ reg_copy_regd(const struct ieee80211_regdomain *src_regd)
 	return regd;
 }
 
-#ifdef CONFIG_CFG80211_INTERNAL_REGDB
+#ifdef CPTCFG_CFG80211_INTERNAL_REGDB
 struct reg_regdb_search_request {
 	char alpha2[2];
 	struct list_head list;
@@ -438,7 +436,7 @@ static void reg_regdb_size_check(void)
 #else
 static inline void reg_regdb_size_check(void) {}
 static inline void reg_regdb_query(const char *alpha2) {}
-#endif /* CONFIG_CFG80211_INTERNAL_REGDB */
+#endif /* CPTCFG_CFG80211_INTERNAL_REGDB */
 
 /*
  * This lets us keep regulatory code which is updated on a regulatory
@@ -771,7 +769,7 @@ const struct ieee80211_reg_rule *freq_reg_info(struct wiphy *wiphy,
 }
 EXPORT_SYMBOL(freq_reg_info);
 
-#ifdef CONFIG_CFG80211_REG_DEBUG
+#ifdef CPTCFG_CFG80211_REG_DEBUG
 static const char *reg_initiator_name(enum nl80211_reg_initiator initiator)
 {
 	switch (initiator) {
@@ -857,7 +855,7 @@ static void handle_channel(struct wiphy *wiphy,
 			return;
 
 		REG_DBG_PRINT("Disabling freq %d MHz\n", chan->center_freq);
-		chan->flags = IEEE80211_CHAN_DISABLED;
+		chan->flags |= IEEE80211_CHAN_DISABLED;
 		return;
 	}
 
@@ -947,7 +945,7 @@ bool reg_last_request_cell_base(void)
 	return val;
 }
 
-#ifdef CONFIG_CFG80211_CERTIFICATION_ONUS
+#ifdef CPTCFG_CFG80211_CERTIFICATION_ONUS
 /* Core specific check */
 static enum reg_request_treatment
 reg_ignore_cell_hint(struct regulatory_request *pending_request)

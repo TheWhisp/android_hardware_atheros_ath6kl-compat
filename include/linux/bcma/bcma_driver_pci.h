@@ -186,7 +186,7 @@ struct pci_dev;
 
 struct bcma_drv_pci;
 
-#ifdef CONFIG_BCMA_DRIVER_PCI_HOSTMODE
+#ifdef CPTCFG_BCMA_DRIVER_PCI_HOSTMODE
 struct bcma_drv_pci_host {
 	struct bcma_drv_pci *pdev;
 
@@ -205,7 +205,7 @@ struct bcma_drv_pci {
 	u8 setup_done:1;
 	u8 hostmode:1;
 
-#ifdef CONFIG_BCMA_DRIVER_PCI_HOSTMODE
+#ifdef CPTCFG_BCMA_DRIVER_PCI_HOSTMODE
 	struct bcma_drv_pci_host *host_controller;
 #endif
 };

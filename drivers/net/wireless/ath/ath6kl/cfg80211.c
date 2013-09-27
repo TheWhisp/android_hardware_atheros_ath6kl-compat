@@ -15,14 +15,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/moduleparam.h>
 #include <linux/inetdevice.h>
 #include <linux/export.h>
-#include <asm/unaligned.h>
 
 #include "core.h"
 #include "cfg80211.h"
@@ -42,7 +39,7 @@
 	.center_freq    = (_freq),              \
 	.flags          = (_flags),             \
 	.max_antenna_gain   = 0,                \
-	.max_power      = 30,                   \
+	.max_power      = 40,                   \
 }
 
 #define CHAN5G(_channel, _flags) {		    \
@@ -51,7 +48,7 @@
 	.center_freq    = 5000 + (5 * (_channel)),  \
 	.flags          = (_flags),                 \
 	.max_antenna_gain   = 0,                    \
-	.max_power      = 30,                       \
+	.max_power      = 40,                       \
 }
 
 #define DEFAULT_BG_SCAN_PERIOD 60
@@ -405,7 +402,7 @@ static bool ath6kl_is_valid_iftype(struct ath6kl *ar, enum nl80211_iftype type,
 	if (type == NL80211_IFTYPE_STATION ||
 	    type == NL80211_IFTYPE_AP || type == NL80211_IFTYPE_ADHOC) {
 		for (i = 0; i < ar->vif_max; i++) {
-			if ((ar->avail_idx_map >> i) & BIT(0)) {
+			if ((ar->avail_idx_map) & BIT(i)) {
 				*if_idx = i;
 				return true;
 			}
@@ -415,7 +412,7 @@ static bool ath6kl_is_valid_iftype(struct ath6kl *ar, enum nl80211_iftype type,
 	if (type == NL80211_IFTYPE_P2P_CLIENT ||
 	    type == NL80211_IFTYPE_P2P_GO) {
 		for (i = ar->max_norm_iface; i < ar->vif_max; i++) {
-			if ((ar->avail_idx_map >> i) & BIT(0)) {
+			if ((ar->avail_idx_map) & BIT(i)) {
 				*if_idx = i;
 				return true;
 			}
@@ -936,8 +933,11 @@ static int ath6kl_set_probed_ssids(struct ath6kl *ar,
 		else
 			ssid_list[i].flag = ANY_SSID_FLAG;
 
+#if 0
+		// this seems to be breaking hidden SSIDs
 		if (n_match_ssid == 0)
 			ssid_list[i].flag |= MATCH_SSID_FLAG;
+#endif
 	}
 
 	index_to_add = i;
@@ -1538,7 +1538,9 @@ static int ath6kl_cfg80211_del_iface(struct wiphy *wiphy,
 
 	ath6kl_cfg80211_vif_stop(vif, test_bit(WMI_READY, &ar->flag));
 
+	rtnl_lock();
 	ath6kl_cfg80211_vif_cleanup(vif);
+	rtnl_unlock();
 
 	return 0;
 }
@@ -2993,13 +2995,15 @@ static int ath6kl_change_station(struct wiphy *wiphy, struct net_device *dev,
 {
 	struct ath6kl *ar = ath6kl_priv(dev);
 	struct ath6kl_vif *vif = netdev_priv(dev);
+	int err;
 
 	if (vif->nw_type != AP_NETWORK)
 		return -EOPNOTSUPP;
 
-	/* Use this only for authorizing/unauthorizing a station */
-	if (!(params->sta_flags_mask & BIT(NL80211_STA_FLAG_AUTHORIZED)))
-		return -EOPNOTSUPP;
+	err = cfg80211_check_station_change(wiphy, params,
+					    CFG80211_STA_AP_MLME_CLIENT);
+	if (err)
+		return err;
 
 	if (params->sta_flags_set & BIT(NL80211_STA_FLAG_AUTHORIZED))
 		return ath6kl_wmi_ap_set_mlme(ar->wmi, vif->fw_vif_idx,
@@ -3662,7 +3666,6 @@ struct wireless_dev *ath6kl_interface_add(struct ath6kl *ar, const char *name,
 	vif->sme_state = SME_DISCONNECTED;
 	set_bit(WLAN_ENABLED, &vif->flags);
 	ar->wlan_pwr_state = WLAN_POWER_STATE_ON;
-	set_bit(NETDEV_REGISTERED, &vif->flags);
 
 	if (type == NL80211_IFTYPE_ADHOC)
 		ar->ibss_if_active = true;
@@ -3700,7 +3703,7 @@ int ath6kl_cfg80211_init(struct ath6kl *ar)
 					  BIT(NL80211_IFTYPE_P2P_CLIENT);
 	}
 
-	if (config_enabled(CONFIG_ATH6KL_REGDOMAIN) &&
+	if (config_enabled(CPTCFG_ATH6KL_REGDOMAIN) &&
 	    test_bit(ATH6KL_FW_CAPABILITY_REGDOMAIN, ar->fw_capabilities)) {
 		wiphy->reg_notifier = ath6kl_cfg80211_reg_notify;
 		ar->wiphy->features |= NL80211_FEATURE_CELL_BASE_REG_HINTS;

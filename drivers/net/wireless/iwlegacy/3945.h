@@ -87,7 +87,7 @@ struct il3945_rs_sta {
 	u8 start_rate;
 	struct timer_list rate_scale_flush;
 	struct il3945_rate_scale_data win[RATE_COUNT_3945];
-#ifdef CONFIG_MAC80211_DEBUGFS
+#ifdef CPTCFG_MAC80211_DEBUGFS
 	struct dentry *rs_sta_dbgfs_stats_table_file;
 #endif
 
@@ -149,10 +149,6 @@ struct il3945_frame {
 	} u;
 	struct list_head list;
 };
-
-#define SEQ_TO_SN(seq) (((seq) & IEEE80211_SCTL_SEQ) >> 4)
-#define SN_TO_SEQ(ssn) (((ssn) << 4) & IEEE80211_SCTL_SEQ)
-#define MAX_SN ((IEEE80211_SCTL_SEQ) >> 4)
 
 #define SUP_RATE_11A_MAX_NUM_CHANNELS  8
 #define SUP_RATE_11B_MAX_NUM_CHANNELS  4
@@ -594,7 +590,7 @@ struct il3945_tfd {
 	u8 __pad[28];
 } __packed;
 
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 extern const struct il_debugfs_ops il3945_debugfs_ops;
 #endif
 

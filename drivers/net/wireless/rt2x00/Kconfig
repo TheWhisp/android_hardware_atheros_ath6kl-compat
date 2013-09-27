@@ -1,5 +1,6 @@
 menuconfig RT2X00
 	tristate "Ralink driver support"
+	depends on m
 	depends on MAC80211
 	---help---
 	  This will enable the support for the Ralink drivers,
@@ -19,9 +20,11 @@ if RT2X00
 
 config RT2400PCI
 	tristate "Ralink rt2400 (PCI/PCMCIA) support"
+	depends on m
 	depends on PCI
+	select RT2X00_LIB_MMIO
 	select RT2X00_LIB_PCI
-	select EEPROM_93CX6
+	depends on EEPROM_93CX6
 	---help---
 	  This adds support for rt2400 wireless chipset family.
 	  Supported chips: RT2460.
@@ -30,9 +33,11 @@ config RT2400PCI
 
 config RT2500PCI
 	tristate "Ralink rt2500 (PCI/PCMCIA) support"
+	depends on m
 	depends on PCI
+	select RT2X00_LIB_MMIO
 	select RT2X00_LIB_PCI
-	select EEPROM_93CX6
+	depends on EEPROM_93CX6
 	---help---
 	  This adds support for rt2500 wireless chipset family.
 	  Supported chips: RT2560.
@@ -41,12 +46,14 @@ config RT2500PCI
 
 config RT61PCI
 	tristate "Ralink rt2501/rt61 (PCI/PCMCIA) support"
+	depends on m
 	depends on PCI
 	select RT2X00_LIB_PCI
+	select RT2X00_LIB_MMIO
 	select RT2X00_LIB_FIRMWARE
 	select RT2X00_LIB_CRYPTO
-	select CRC_ITU_T
-	select EEPROM_93CX6
+	depends on CRC_ITU_T
+	depends on EEPROM_93CX6
 	---help---
 	  This adds support for rt2501 wireless chipset family.
 	  Supported chips: RT2561, RT2561S & RT2661.
@@ -55,14 +62,16 @@ config RT61PCI
 
 config RT2800PCI
 	tristate "Ralink rt27xx/rt28xx/rt30xx (PCI/PCIe/PCMCIA) support"
+	depends on m
 	depends on PCI || SOC_RT288X || SOC_RT305X
 	select RT2800_LIB
+	select RT2X00_LIB_MMIO
 	select RT2X00_LIB_PCI if PCI
 	select RT2X00_LIB_SOC if SOC_RT288X || SOC_RT305X
 	select RT2X00_LIB_FIRMWARE
 	select RT2X00_LIB_CRYPTO
-	select CRC_CCITT
-	select EEPROM_93CX6
+	depends on CRC_CCITT
+	depends on EEPROM_93CX6
 	---help---
 	  This adds support for rt27xx/rt28xx/rt30xx wireless chipset family.
 	  Supported chips: RT2760, RT2790, RT2860, RT2880, RT2890, RT3052,
@@ -108,6 +117,7 @@ endif
 
 config RT2500USB
 	tristate "Ralink rt2500 (USB) support"
+	depends on m
 	depends on USB
 	select RT2X00_LIB_USB
 	select RT2X00_LIB_CRYPTO
@@ -119,11 +129,12 @@ config RT2500USB
 
 config RT73USB
 	tristate "Ralink rt2501/rt73 (USB) support"
+	depends on m
 	depends on USB
 	select RT2X00_LIB_USB
 	select RT2X00_LIB_FIRMWARE
 	select RT2X00_LIB_CRYPTO
-	select CRC_ITU_T
+	depends on CRC_ITU_T
 	---help---
 	  This adds support for rt2501 wireless chipset family.
 	  Supported chips: RT2571W, RT2573 & RT2671.
@@ -132,12 +143,13 @@ config RT73USB
 
 config RT2800USB
 	tristate "Ralink rt27xx/rt28xx/rt30xx (USB) support"
+	depends on m
 	depends on USB
 	select RT2800_LIB
 	select RT2X00_LIB_USB
 	select RT2X00_LIB_FIRMWARE
 	select RT2X00_LIB_CRYPTO
-	select CRC_CCITT
+	depends on CRC_CCITT
 	---help---
 	  This adds support for rt27xx/rt28xx/rt30xx wireless chipset family.
 	  Supported chips: RT2770, RT2870 & RT3070, RT3071 & RT3072
@@ -169,6 +181,13 @@ config RT2800USB_RT53XX
          rt2800usb driver.
          Supported chips: RT5370
 
+config RT2800USB_RT55XX
+       bool "rt2800usb - Include support for rt55xx devices (EXPERIMENTAL)"
+       ---help---
+         This adds support for rt55xx wireless chipset family to the
+         rt2800usb driver.
+         Supported chips: RT5572
+
 config RT2800USB_UNKNOWN
 	bool "rt2800usb - Include support for unknown (USB) devices"
 	default n
@@ -184,30 +203,40 @@ endif
 
 config RT2800_LIB
 	tristate
+	depends on m
+
+config RT2X00_LIB_MMIO
+	tristate
+	depends on m
 
 config RT2X00_LIB_PCI
 	tristate
+	depends on m
 	select RT2X00_LIB
 
 config RT2X00_LIB_SOC
 	tristate
+	depends on m
 	select RT2X00_LIB
 
 config RT2X00_LIB_USB
 	tristate
+	depends on m
 	select RT2X00_LIB
 
 config RT2X00_LIB
 	tristate
+	depends on m
 
 config RT2X00_LIB_FIRMWARE
 	boolean
-	select FW_LOADER
+	select BACKPORT_FW_LOADER
 
 config RT2X00_LIB_CRYPTO
 	boolean
 
 config RT2X00_LIB_LEDS
+	depends on !BACKPORT_KERNEL_2_6_25
 	boolean
 	default y if (RT2X00_LIB=y && LEDS_CLASS=y) || (RT2X00_LIB=m && LEDS_CLASS!=n)
 

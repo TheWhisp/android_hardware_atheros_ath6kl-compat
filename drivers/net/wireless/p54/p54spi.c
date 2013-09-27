@@ -36,9 +36,9 @@
 
 #include "lmac.h"
 
-#ifdef CONFIG_P54_SPI_DEFAULT_EEPROM
+#ifdef CPTCFG_P54_SPI_DEFAULT_EEPROM
 #include "p54spi_eeprom.h"
-#endif /* CONFIG_P54_SPI_DEFAULT_EEPROM */
+#endif /* CPTCFG_P54_SPI_DEFAULT_EEPROM */
 
 MODULE_FIRMWARE("3826.arm");
 
@@ -197,13 +197,13 @@ static int p54spi_request_eeprom(struct ieee80211_hw *dev)
 
 	ret = request_firmware(&eeprom, "3826.eeprom", &priv->spi->dev);
 	if (ret < 0) {
-#ifdef CONFIG_P54_SPI_DEFAULT_EEPROM
+#ifdef CPTCFG_P54_SPI_DEFAULT_EEPROM
 		dev_info(&priv->spi->dev, "loading default eeprom...\n");
 		ret = p54_parse_eeprom(dev, (void *) p54spi_eeprom,
 				       sizeof(p54spi_eeprom));
 #else
 		dev_err(&priv->spi->dev, "Failed to request user eeprom\n");
-#endif /* CONFIG_P54_SPI_DEFAULT_EEPROM */
+#endif /* CPTCFG_P54_SPI_DEFAULT_EEPROM */
 	} else {
 		dev_info(&priv->spi->dev, "loading user eeprom...\n");
 		ret = p54_parse_eeprom(dev, (void *) eeprom->data,
@@ -396,7 +396,7 @@ static int p54spi_rx(struct p54s_priv *priv)
 static irqreturn_t p54spi_interrupt(int irq, void *config)
 {
 	struct spi_device *spi = config;
-	struct p54s_priv *priv = dev_get_drvdata(&spi->dev);
+	struct p54s_priv *priv = spi_get_drvdata(spi);
 
 	ieee80211_queue_work(priv->hw, &priv->work);
 
@@ -609,7 +609,7 @@ static int p54spi_probe(struct spi_device *spi)
 
 	priv = hw->priv;
 	priv->hw = hw;
-	dev_set_drvdata(&spi->dev, priv);
+	spi_set_drvdata(spi, priv);
 	priv->spi = spi;
 
 	spi->bits_per_word = 16;
@@ -685,7 +685,7 @@ err_free:
 
 static int p54spi_remove(struct spi_device *spi)
 {
-	struct p54s_priv *priv = dev_get_drvdata(&spi->dev);
+	struct p54s_priv *priv = spi_get_drvdata(spi);
 
 	p54_unregister_common(priv->hw);
 

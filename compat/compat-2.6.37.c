@@ -13,6 +13,8 @@
 #include <net/sock.h>
 #include <linux/nsproxy.h>
 #include <linux/vmalloc.h>
+#include <net/genetlink.h>
+#include <linux/leds.h>
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,35)
 static const void *net_current_ns(void)
@@ -153,7 +155,7 @@ int compat_genl_unregister_family(struct genl_family *family)
 }
 EXPORT_SYMBOL_GPL(compat_genl_unregister_family);
 
-#if defined(CONFIG_LEDS_CLASS) || defined(CONFIG_LEDS_CLASS_MODULE)
+#if IS_ENABLED(CONFIG_LEDS_CLASS) && !defined(CPTCFG_BACKPORT_BUILD_LEDS)
 
 #undef led_brightness_set
 #undef led_classdev_unregister
@@ -334,6 +336,7 @@ void compat_led_classdev_unregister(struct led_classdev *led_cdev)
 	led_classdev_unregister(led_cdev);
 }
 EXPORT_SYMBOL_GPL(compat_led_classdev_unregister);
+#endif
 
 /**
  *	vzalloc - allocate virtually contiguous memory with zero fill
@@ -345,7 +348,7 @@ EXPORT_SYMBOL_GPL(compat_led_classdev_unregister);
  *	For tight control over page level allocator and protection flags
  *	use __vmalloc() instead.
  */
-void *compat_vzalloc(unsigned long size)
+void *vzalloc(unsigned long size)
 {
 	void *buf;
 	buf = vmalloc(size);
@@ -353,6 +356,4 @@ void *compat_vzalloc(unsigned long size)
 		memset(buf, 0, size);
 	return buf;
 }
-EXPORT_SYMBOL_GPL(compat_vzalloc);
-
-#endif
+EXPORT_SYMBOL_GPL(vzalloc);

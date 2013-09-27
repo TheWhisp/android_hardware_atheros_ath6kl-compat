@@ -182,7 +182,7 @@ static struct pm_qos_request ipw2100_pm_qos_req;
 #endif
 
 /* Debugging stuff */
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 #define IPW2100_RX_DEBUG	/* Reception debugging */
 #endif
 
@@ -215,7 +215,7 @@ MODULE_PARM_DESC(disable, "manually disable the radio (default 0 [radio on])");
 
 static u32 ipw2100_debug_level = IPW_DL_NONE;
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 #define IPW_DEBUG(level, message...) \
 do { \
 	if (ipw2100_debug_level & (level)) { \
@@ -226,9 +226,9 @@ do { \
 } while (0)
 #else
 #define IPW_DEBUG(level, message...) do {} while (0)
-#endif				/* CONFIG_IPW2100_DEBUG */
+#endif				/* CPTCFG_IPW2100_DEBUG */
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 static const char *command_types[] = {
 	"undefined",
 	"unused",		/* HOST_ATTENTION */
@@ -2213,7 +2213,7 @@ static void isr_scan_complete(struct ipw2100_priv *priv, u32 status)
 	}
 }
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 #define IPW2100_HANDLER(v, f) { v, f, # v }
 struct ipw2100_status_indicator {
 	int status;
@@ -2226,7 +2226,7 @@ struct ipw2100_status_indicator {
 	int status;
 	void (*cb) (struct ipw2100_priv * priv, u32 status);
 };
-#endif				/* CONFIG_IPW2100_DEBUG */
+#endif				/* CPTCFG_IPW2100_DEBUG */
 
 static void isr_indicate_scanning(struct ipw2100_priv *priv, u32 status)
 {
@@ -2281,7 +2281,7 @@ static void isr_status_change(struct ipw2100_priv *priv, int status)
 static void isr_rx_complete_command(struct ipw2100_priv *priv,
 				    struct ipw2100_cmd_header *cmd)
 {
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	if (cmd->host_command_reg < ARRAY_SIZE(command_types)) {
 		IPW_DEBUG_HC("Command completed '%s (%d)'\n",
 			     command_types[cmd->host_command_reg],
@@ -2299,7 +2299,7 @@ static void isr_rx_complete_command(struct ipw2100_priv *priv,
 	wake_up_interruptible(&priv->wait_command_queue);
 }
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 static const char *frame_types[] = {
 	"COMMAND_STATUS_VAL",
 	"STATUS_CHANGE_VAL",
@@ -2539,7 +2539,7 @@ static void isr_rx(struct ipw2100_priv *priv, int i,
 	priv->rx_queue.drv[i].host_addr = packet->dma_addr;
 }
 
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 
 static void isr_rx_monitor(struct ipw2100_priv *priv, int i,
 		   struct libipw_rx_stats *stats)
@@ -2638,7 +2638,7 @@ static int ipw2100_corruption_check(struct ipw2100_priv *priv, int i)
 		return (status->frame_size < sizeof(u->rx_data.notification));
 	case P80211_DATA_VAL:
 	case P8023_DATA_VAL:
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 		return 0;
 #else
 		switch (WLAN_FC_GET_TYPE(le16_to_cpu(u->rx_data.header.frame_ctl))) {
@@ -2744,7 +2744,7 @@ static void __ipw2100_rx_process(struct ipw2100_priv *priv)
 
 		case P80211_DATA_VAL:
 		case P8023_DATA_VAL:
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 			if (priv->ieee->iw_mode == IW_MODE_MONITOR) {
 				isr_rx_monitor(priv, i, &stats);
 				break;
@@ -2906,7 +2906,7 @@ static int __ipw2100_tx_process(struct ipw2100_priv *priv)
 	list_del(element);
 	DEC_STAT(&priv->fw_pend_stat);
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	{
 		i = txq->oldest;
 		IPW_DEBUG_TX("TX%d V=%p P=%04X T=%04X L=%d\n", i,
@@ -2972,7 +2972,7 @@ static int __ipw2100_tx_process(struct ipw2100_priv *priv)
 			       "something else: ids %d=%d.\n",
 			       priv->net_dev->name, txq->oldest, packet->index);
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 		if (packet->info.c_struct.cmd->host_command_reg <
 		    ARRAY_SIZE(command_types))
 			IPW_DEBUG_TX("Command '%s (%d)' processed: %d.\n",
@@ -3165,7 +3165,7 @@ static void ipw2100_tx_send_data(struct ipw2100_priv *priv)
 
 		IPW_DEBUG_TX("data header tbd TX%d P=%08x L=%d\n",
 			     packet->index, tbd->host_addr, tbd->buf_length);
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 		if (packet->info.d_struct.txb->nr_frags > 1)
 			IPW_DEBUG_FRAG("fragment Tx: %d frames\n",
 				       packet->info.d_struct.txb->nr_frags);
@@ -4009,7 +4009,7 @@ static ssize_t show_stats(struct device *d, struct device_attribute *attr,
 		       priv->rx_interrupts, priv->inta_other);
 	out += sprintf(out, "firmware resets: %d\n", priv->resets);
 	out += sprintf(out, "firmware hangs: %d\n", priv->hangs);
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	out += sprintf(out, "packet mismatch image: %s\n",
 		       priv->snapshot[0] ? "YES" : "NO");
 #endif
@@ -4040,12 +4040,12 @@ static int ipw2100_switch_mode(struct ipw2100_priv *priv, u32 mode)
 	case IW_MODE_ADHOC:
 		priv->net_dev->type = ARPHRD_ETHER;
 		break;
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	case IW_MODE_MONITOR:
 		priv->last_mode = priv->ieee->iw_mode;
 		priv->net_dev->type = ARPHRD_IEEE80211_RADIOTAP;
 		break;
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 	}
 
 	priv->ieee->iw_mode = mode;
@@ -4162,7 +4162,7 @@ static ssize_t show_bssinfo(struct device *d, struct device_attribute *attr,
 
 static DEVICE_ATTR(bssinfo, S_IRUGO, show_bssinfo, NULL);
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 static ssize_t show_debug_level(struct device_driver *d, char *buf)
 {
 	return sprintf(buf, "0x%08X\n", ipw2100_debug_level);
@@ -4171,17 +4171,11 @@ static ssize_t show_debug_level(struct device_driver *d, char *buf)
 static ssize_t store_debug_level(struct device_driver *d,
 				 const char *buf, size_t count)
 {
-	char *p = (char *)buf;
 	u32 val;
+	int ret;
 
-	if (p[1] == 'x' || p[1] == 'X' || p[0] == 'x' || p[0] == 'X') {
-		p++;
-		if (p[0] == 'x' || p[0] == 'X')
-			p++;
-		val = simple_strtoul(p, &p, 16);
-	} else
-		val = simple_strtoul(p, &p, 10);
-	if (p == buf)
+	ret = kstrtou32(buf, 0, &val);
+	if (ret)
 		IPW_DEBUG_INFO(": %s is not in hex or decimal form.\n", buf);
 	else
 		ipw2100_debug_level = val;
@@ -4191,7 +4185,7 @@ static ssize_t store_debug_level(struct device_driver *d,
 
 static DRIVER_ATTR(debug_level, S_IWUSR | S_IRUGO, show_debug_level,
 		   store_debug_level);
-#endif				/* CONFIG_IPW2100_DEBUG */
+#endif				/* CPTCFG_IPW2100_DEBUG */
 
 static ssize_t show_fatal_error(struct device *d,
 				struct device_attribute *attr, char *buf)
@@ -4242,27 +4236,15 @@ static ssize_t store_scan_age(struct device *d, struct device_attribute *attr,
 {
 	struct ipw2100_priv *priv = dev_get_drvdata(d);
 	struct net_device *dev = priv->net_dev;
-	char buffer[] = "00000000";
-	unsigned long len =
-	    (sizeof(buffer) - 1) > count ? count : sizeof(buffer) - 1;
 	unsigned long val;
-	char *p = buffer;
+	int ret;
 
 	(void)dev;		/* kill unused-var warning for debug-only code */
 
 	IPW_DEBUG_INFO("enter\n");
 
-	strncpy(buffer, buf, len);
-	buffer[len] = 0;
-
-	if (p[1] == 'x' || p[1] == 'X' || p[0] == 'x' || p[0] == 'X') {
-		p++;
-		if (p[0] == 'x' || p[0] == 'X')
-			p++;
-		val = simple_strtoul(p, &p, 16);
-	} else
-		val = simple_strtoul(p, &p, 10);
-	if (p == buffer) {
+	ret = kstrtoul(buf, 0, &val);
+	if (ret) {
 		IPW_DEBUG_INFO("%s: user supplied invalid value.\n", dev->name);
 	} else {
 		priv->ieee->scan_age = val;
@@ -4270,7 +4252,7 @@ static ssize_t store_scan_age(struct device *d, struct device_attribute *attr,
 	}
 
 	IPW_DEBUG_INFO("exit\n");
-	return len;
+	return strnlen(buf, count);
 }
 
 static DEVICE_ATTR(scan_age, S_IWUSR | S_IRUGO, show_scan_age, store_scan_age);
@@ -5108,7 +5090,7 @@ static int ipw2100_set_mandatory_bssid(struct ipw2100_priv *priv, u8 * bssid,
 	};
 	int err;
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	if (bssid != NULL)
 		IPW_DEBUG_HC("MANDATORY_BSSID: %pM\n", bssid);
 	else
@@ -5698,7 +5680,7 @@ static int ipw2100_adapter_setup(struct ipw2100_priv *priv)
 	err = ipw2100_disable_adapter(priv);
 	if (err)
 		return err;
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	if (priv->ieee->iw_mode == IW_MODE_MONITOR) {
 		err = ipw2100_set_channel(priv, priv->channel, batch_mode);
 		if (err)
@@ -5708,7 +5690,7 @@ static int ipw2100_adapter_setup(struct ipw2100_priv *priv)
 
 		return 0;
 	}
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 
 	err = ipw2100_read_mac_address(priv);
 	if (err)
@@ -5888,7 +5870,7 @@ static void ipw2100_tx_timeout(struct net_device *dev)
 
 	dev->stats.tx_errors++;
 
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	if (priv->ieee->iw_mode == IW_MODE_MONITOR)
 		return;
 #endif
@@ -6114,7 +6096,7 @@ static struct net_device *ipw2100_alloc_device(struct pci_dev *pci_dev,
 	/* If power management is turned on, default to AUTO mode */
 	priv->power_mode = IPW_POWER_AUTO;
 
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	priv->config |= CFG_CRC_CHECK;
 #endif
 	priv->ieee->wpa_enabled = 0;
@@ -6127,7 +6109,7 @@ static struct net_device *ipw2100_alloc_device(struct pci_dev *pci_dev,
 	case 1:
 		priv->ieee->iw_mode = IW_MODE_ADHOC;
 		break;
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	case 2:
 		priv->ieee->iw_mode = IW_MODE_MONITOR;
 		break;
@@ -6627,7 +6609,7 @@ static int __init ipw2100_init(void)
 	if (ret)
 		goto out;
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	ipw2100_debug_level = debug;
 	ret = driver_create_file(&ipw2100_pci_driver.driver,
 				 &driver_attr_debug_level);
@@ -6643,7 +6625,7 @@ out:
 static void __exit ipw2100_exit(void)
 {
 	/* FIXME: IPG: check that we have no instances of the devices open */
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 	driver_remove_file(&ipw2100_pci_driver.driver,
 			   &driver_attr_debug_level);
 #endif
@@ -6762,11 +6744,11 @@ static int ipw2100_wx_set_mode(struct net_device *dev,
 	}
 
 	switch (wrqu->mode) {
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	case IW_MODE_MONITOR:
 		err = ipw2100_switch_mode(priv, IW_MODE_MONITOR);
 		break;
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 	case IW_MODE_ADHOC:
 		err = ipw2100_switch_mode(priv, IW_MODE_ADHOC);
 		break;
@@ -7862,7 +7844,7 @@ static int ipw2100_wx_set_mlme(struct net_device *dev,
  * IWPRIV handlers
  *
  */
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 static int ipw2100_wx_set_promisc(struct net_device *dev,
 				  struct iw_request_info *info,
 				  union iwreq_data *wrqu, char *extra)
@@ -8017,7 +7999,7 @@ static int ipw2100_wx_get_preamble(struct net_device *dev,
 	return 0;
 }
 
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 static int ipw2100_wx_set_crc_check(struct net_device *dev,
 				    struct iw_request_info *info,
 				    union iwreq_data *wrqu, char *extra)
@@ -8063,7 +8045,7 @@ static int ipw2100_wx_get_crc_check(struct net_device *dev,
 
 	return 0;
 }
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 
 static iw_handler ipw2100_wx_handlers[] = {
 	IW_HANDLER(SIOCGIWNAME, ipw2100_wx_get_name),
@@ -8114,14 +8096,14 @@ static iw_handler ipw2100_wx_handlers[] = {
 
 static const struct iw_priv_args ipw2100_private_args[] = {
 
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	{
 	 IPW2100_PRIV_SET_MONITOR,
 	 IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 2, 0, "monitor"},
 	{
 	 IPW2100_PRIV_RESET,
 	 IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 0, 0, "reset"},
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 
 	{
 	 IPW2100_PRIV_SET_POWER,
@@ -8136,35 +8118,35 @@ static const struct iw_priv_args ipw2100_private_args[] = {
 	{
 	 IPW2100_PRIV_GET_LONGPREAMBLE,
 	 0, IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_FIXED | IFNAMSIZ, "get_preamble"},
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	{
 	 IPW2100_PRIV_SET_CRC_CHECK,
 	 IW_PRIV_TYPE_INT | IW_PRIV_SIZE_FIXED | 1, 0, "set_crc_check"},
 	{
 	 IPW2100_PRIV_GET_CRC_CHECK,
 	 0, IW_PRIV_TYPE_CHAR | IW_PRIV_SIZE_FIXED | IFNAMSIZ, "get_crc_check"},
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 };
 
 static iw_handler ipw2100_private_handler[] = {
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	ipw2100_wx_set_promisc,
 	ipw2100_wx_reset,
-#else				/* CONFIG_IPW2100_MONITOR */
+#else				/* CPTCFG_IPW2100_MONITOR */
 	NULL,
 	NULL,
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 	ipw2100_wx_set_powermode,
 	ipw2100_wx_get_powermode,
 	ipw2100_wx_set_preamble,
 	ipw2100_wx_get_preamble,
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	ipw2100_wx_set_crc_check,
 	ipw2100_wx_get_crc_check,
-#else				/* CONFIG_IPW2100_MONITOR */
+#else				/* CPTCFG_IPW2100_MONITOR */
 	NULL,
 	NULL,
-#endif				/* CONFIG_IPW2100_MONITOR */
+#endif				/* CPTCFG_IPW2100_MONITOR */
 };
 
 /*
@@ -8275,7 +8257,7 @@ static struct iw_statistics *ipw2100_wx_wireless_stats(struct net_device *dev)
 		quality = min(tx_qual, rssi_qual);
 		quality = min(beacon_qual, quality);
 
-#ifdef CONFIG_IPW2100_DEBUG
+#ifdef CPTCFG_IPW2100_DEBUG
 		if (beacon_qual == quality)
 			IPW_DEBUG_WX("Quality clamped by Missed Beacons\n");
 		else if (tx_qual == quality)
@@ -8441,7 +8423,7 @@ static int ipw2100_get_firmware(struct ipw2100_priv *priv,
 	case IW_MODE_ADHOC:
 		fw_name = IPW2100_FW_NAME("-i");
 		break;
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 	case IW_MODE_MONITOR:
 		fw_name = IPW2100_FW_NAME("-p");
 		break;
@@ -8469,7 +8451,7 @@ static int ipw2100_get_firmware(struct ipw2100_priv *priv,
 }
 
 MODULE_FIRMWARE(IPW2100_FW_NAME("-i"));
-#ifdef CONFIG_IPW2100_MONITOR
+#ifdef CPTCFG_IPW2100_MONITOR
 MODULE_FIRMWARE(IPW2100_FW_NAME("-p"));
 #endif
 MODULE_FIRMWARE(IPW2100_FW_NAME(""));

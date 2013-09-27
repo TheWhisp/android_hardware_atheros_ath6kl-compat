@@ -33,10 +33,8 @@
  *   when freed).
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) "[TTM] " fmt
 
-#include <linux/printk.h>
 #include <linux/dma-mapping.h>
 #include <linux/list.h>
 #include <linux/seq_file.h> /* for seq_printf */

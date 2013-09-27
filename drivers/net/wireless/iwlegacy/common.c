@@ -265,7 +265,7 @@ il_generic_cmd_callback(struct il_priv *il, struct il_device_cmd *cmd,
 		       il_get_cmd_string(cmd->hdr.cmd), pkt->hdr.flags);
 		return;
 	}
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	switch (cmd->hdr.cmd) {
 	case C_TX_LINK_QUALITY_CMD:
 	case C_SENSITIVITY:
@@ -1128,7 +1128,7 @@ il_set_power(struct il_priv *il, struct il_powertable_cmd *cmd)
 			       sizeof(struct il_powertable_cmd), cmd);
 }
 
-int
+static int
 il_power_set_mode(struct il_priv *il, struct il_powertable_cmd *cmd, bool force)
 {
 	int ret;
@@ -1354,7 +1354,7 @@ EXPORT_SYMBOL(il_scan_cancel_timeout);
 static void
 il_hdl_scan(struct il_priv *il, struct il_rx_buf *rxb)
 {
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 	struct il_scanreq_notification *notif =
 	    (struct il_scanreq_notification *)pkt->u.raw;
@@ -1381,7 +1381,7 @@ il_hdl_scan_start(struct il_priv *il, struct il_rx_buf *rxb)
 static void
 il_hdl_scan_results(struct il_priv *il, struct il_rx_buf *rxb)
 {
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 	struct il_scanresults_notification *notif =
 	    (struct il_scanresults_notification *)pkt->u.raw;
@@ -1399,7 +1399,7 @@ static void
 il_hdl_scan_complete(struct il_priv *il, struct il_rx_buf *rxb)
 {
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 	struct il_scancomplete_notification *scan_notif = (void *)pkt->u.raw;
 #endif
@@ -1429,7 +1429,7 @@ il_setup_rx_scan_handlers(struct il_priv *il)
 }
 EXPORT_SYMBOL(il_setup_rx_scan_handlers);
 
-inline u16
+u16
 il_get_active_dwell_time(struct il_priv *il, enum ieee80211_band band,
 			 u8 n_probes)
 {
@@ -2305,7 +2305,7 @@ il_dealloc_bcast_stations(struct il_priv *il)
 }
 EXPORT_SYMBOL_GPL(il_dealloc_bcast_stations);
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 static void
 il_dump_lq_cmd(struct il_priv *il, struct il_link_quality_cmd *lq)
 {
@@ -2572,15 +2572,13 @@ il_rx_queue_alloc(struct il_priv *il)
 	INIT_LIST_HEAD(&rxq->rx_used);
 
 	/* Alloc the circular buffer of Read Buffer Descriptors (RBDs) */
-	rxq->bd =
-	    dma_alloc_coherent(dev, 4 * RX_QUEUE_SIZE, &rxq->bd_dma,
-			       GFP_KERNEL);
+	rxq->bd = dma_alloc_coherent(dev, 4 * RX_QUEUE_SIZE, &rxq->bd_dma,
+				     GFP_KERNEL);
 	if (!rxq->bd)
 		goto err_bd;
 
-	rxq->rb_stts =
-	    dma_alloc_coherent(dev, sizeof(struct il_rb_status),
-			       &rxq->rb_stts_dma, GFP_KERNEL);
+	rxq->rb_stts = dma_alloc_coherent(dev, sizeof(struct il_rb_status),
+					  &rxq->rb_stts_dma, GFP_KERNEL);
 	if (!rxq->rb_stts)
 		goto err_rb;
 
@@ -2947,10 +2945,9 @@ il_tx_queue_alloc(struct il_priv *il, struct il_tx_queue *txq, u32 id)
 	 * shared with device */
 	txq->tfds =
 	    dma_alloc_coherent(dev, tfd_sz, &txq->q.dma_addr, GFP_KERNEL);
-	if (!txq->tfds) {
-		IL_ERR("Fail to alloc TFDs\n");
+	if (!txq->tfds)
 		goto error;
-	}
+
 	txq->q.id = id;
 
 	return 0;
@@ -3148,7 +3145,7 @@ il_enqueue_hcmd(struct il_priv *il, struct il_host_cmd *cmd)
 	if (idx == TFD_CMD_SLOTS)
 		len = IL_MAX_CMD_SIZE;
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	switch (out_cmd->hdr.cmd) {
 	case C_TX_LINK_QUALITY_CMD:
 	case C_SENSITIVITY:
@@ -3545,7 +3542,7 @@ il_is_ht40_tx_allowed(struct il_priv *il, struct ieee80211_sta_ht_cap *ht_cap)
 	if (ht_cap && !ht_cap->ht_supported)
 		return false;
 
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 	if (il->disable_ht40)
 		return false;
 #endif
@@ -4088,7 +4085,7 @@ il_hdl_csa(struct il_priv *il, struct il_rx_buf *rxb)
 }
 EXPORT_SYMBOL(il_hdl_csa);
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 void
 il_print_rx_config_cmd(struct il_priv *il)
 {
@@ -4125,7 +4122,7 @@ il_irq_handle_error(struct il_priv *il)
 	il->ops->dump_nic_error_log(il);
 	if (il->ops->dump_fh)
 		il->ops->dump_fh(il, NULL, false);
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	if (il_get_debug_level(il) & IL_DL_FW_ERRORS)
 		il_print_rx_config_cmd(il);
 #endif
@@ -4409,7 +4406,7 @@ EXPORT_SYMBOL(il_send_stats_request);
 void
 il_hdl_pm_sleep(struct il_priv *il, struct il_rx_buf *rxb)
 {
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 	struct il_rx_pkt *pkt = rxb_addr(rxb);
 	struct il_sleep_notification *sleep = &(pkt->u.sleep_notif);
 	D_RX("sleep mode: %d, src: %d\n",
@@ -4710,8 +4707,7 @@ out:
 }
 EXPORT_SYMBOL(il_mac_change_interface);
 
-void
-il_mac_flush(struct ieee80211_hw *hw, bool drop)
+void il_mac_flush(struct ieee80211_hw *hw, u32 queues, bool drop)
 {
 	struct il_priv *il = hw->priv;
 	unsigned long timeout = jiffies + msecs_to_jiffies(500);
@@ -4897,7 +4893,7 @@ il_add_beacon_time(struct il_priv *il, u32 base, u32 addon,
 }
 EXPORT_SYMBOL(il_add_beacon_time);
 
-#ifdef CONFIG_PM
+#ifdef CONFIG_PM_SLEEP
 
 static int
 il_pci_suspend(struct device *device)
@@ -4957,7 +4953,7 @@ EXPORT_SYMBOL(il_pci_suspend_compat);
 EXPORT_SYMBOL(il_pci_resume_compat);
 #endif
 
-#endif /* CONFIG_PM */
+#endif /* CONFIG_PM_SLEEP */
 
 static void
 il_update_qos(struct il_priv *il)
@@ -4990,7 +4986,7 @@ il_mac_config(struct ieee80211_hw *hw, u32 changed)
 	struct il_priv *il = hw->priv;
 	const struct il_channel_info *ch_info;
 	struct ieee80211_conf *conf = &hw->conf;
-	struct ieee80211_channel *channel = conf->channel;
+	struct ieee80211_channel *channel = conf->chandef.chan;
 	struct il_ht_config *ht_conf = &il->current_ht_config;
 	unsigned long flags = 0;
 	int ret = 0;

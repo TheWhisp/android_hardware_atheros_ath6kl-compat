@@ -22,7 +22,7 @@
  * USA
  *
  * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
+ * in the file called COPYING.
  *
  * Contact Information:
  *  Intel Linux Wireless <ilw@linux.intel.com>
@@ -80,7 +80,7 @@ static void __iwl_trans_pcie_set_bits_mask(struct iwl_trans *trans,
 {
 	u32 v;
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	WARN_ON_ONCE(value & ~mask);
 #endif
 
@@ -475,6 +475,10 @@ static int iwl_trans_pcie_start_fw(struct iwl_trans *trans,
 
 	/* If platform's RF_KILL switch is NOT set to KILL */
 	hw_rfkill = iwl_is_rfkill_set(trans);
+	if (hw_rfkill)
+		set_bit(STATUS_RFKILL, &trans_pcie->status);
+	else
+		clear_bit(STATUS_RFKILL, &trans_pcie->status);
 	iwl_op_mode_hw_rf_kill(trans->op_mode, hw_rfkill);
 	if (hw_rfkill && !run_in_rfkill)
 		return -ERFKILL;
@@ -641,6 +645,7 @@ static int iwl_trans_pcie_d3_resume(struct iwl_trans *trans,
 
 static int iwl_trans_pcie_start_hw(struct iwl_trans *trans)
 {
+	struct iwl_trans_pcie *trans_pcie = IWL_TRANS_GET_PCIE_TRANS(trans);
 	bool hw_rfkill;
 	int err;
 
@@ -656,6 +661,10 @@ static int iwl_trans_pcie_start_hw(struct iwl_trans *trans)
 	iwl_enable_rfkill_int(trans);
 
 	hw_rfkill = iwl_is_rfkill_set(trans);
+	if (hw_rfkill)
+		set_bit(STATUS_RFKILL, &trans_pcie->status);
+	else
+		clear_bit(STATUS_RFKILL, &trans_pcie->status);
 	iwl_op_mode_hw_rf_kill(trans->op_mode, hw_rfkill);
 
 	return 0;
@@ -694,6 +703,10 @@ static void iwl_trans_pcie_stop_hw(struct iwl_trans *trans,
 		 * op_mode.
 		 */
 		hw_rfkill = iwl_is_rfkill_set(trans);
+		if (hw_rfkill)
+			set_bit(STATUS_RFKILL, &trans_pcie->status);
+		else
+			clear_bit(STATUS_RFKILL, &trans_pcie->status);
 		iwl_op_mode_hw_rf_kill(trans->op_mode, hw_rfkill);
 	}
 }
@@ -715,7 +728,8 @@ static u32 iwl_trans_pcie_read32(struct iwl_trans *trans, u32 ofs)
 
 static u32 iwl_trans_pcie_read_prph(struct iwl_trans *trans, u32 reg)
 {
-	iwl_trans_pcie_write32(trans, HBUS_TARG_PRPH_RADDR, reg | (3 << 24));
+	iwl_trans_pcie_write32(trans, HBUS_TARG_PRPH_RADDR,
+			       ((reg & 0x000FFFFF) | (3 << 24)));
 	return iwl_trans_pcie_read32(trans, HBUS_TARG_PRPH_RDAT);
 }
 
@@ -723,7 +737,7 @@ static void iwl_trans_pcie_write_prph(struct iwl_trans *trans, u32 addr,
 				      u32 val)
 {
 	iwl_trans_pcie_write32(trans, HBUS_TARG_PRPH_WADDR,
-			       ((addr & 0x0000FFFF) | (3 << 24)));
+			       ((addr & 0x000FFFFF) | (3 << 24)));
 	iwl_trans_pcie_write32(trans, HBUS_TARG_PRPH_WDAT, val);
 }
 
@@ -1046,7 +1060,7 @@ int iwl_pcie_dump_fh(struct iwl_trans *trans, char **buf)
 		FH_TSSR_TX_ERROR_REG
 	};
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 	if (buf) {
 		int pos = 0;
 		size_t bufsz = ARRAY_SIZE(fh_tbl) * 48 + 40;
@@ -1148,7 +1162,7 @@ void iwl_pcie_dump_csr(struct iwl_trans *trans)
 	}
 }
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 /* create and remove of files */
 #define DEBUGFS_ADD_FILE(name, parent, mode) do {			\
 	if (!debugfs_create_file(#name, mode, parent, trans,		\
@@ -1286,7 +1300,7 @@ static ssize_t iwl_dbgfs_interrupt_read(struct file *file,
 			"\tLast Restarting Code:  0x%X\n",
 			isr_stats->err_code);
 	}
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	pos += scnprintf(buf + pos, bufsz - pos, "Frame transmitted:\t\t %u\n",
 		isr_stats->sch);
 	pos += scnprintf(buf + pos, bufsz - pos, "Alive interrupt:\t\t %u\n",
@@ -1379,28 +1393,11 @@ static ssize_t iwl_dbgfs_fh_reg_read(struct file *file,
 	return ret;
 }
 
-static ssize_t iwl_dbgfs_fw_restart_write(struct file *file,
-					  const char __user *user_buf,
-					  size_t count, loff_t *ppos)
-{
-	struct iwl_trans *trans = file->private_data;
-
-	if (!trans->op_mode)
-		return -EAGAIN;
-
-	local_bh_disable();
-	iwl_op_mode_nic_error(trans->op_mode);
-	local_bh_enable();
-
-	return count;
-}
-
 DEBUGFS_READ_WRITE_FILE_OPS(interrupt);
 DEBUGFS_READ_FILE_OPS(fh_reg);
 DEBUGFS_READ_FILE_OPS(rx_queue);
 DEBUGFS_READ_FILE_OPS(tx_queue);
 DEBUGFS_WRITE_FILE_OPS(csr);
-DEBUGFS_WRITE_FILE_OPS(fw_restart);
 
 /*
  * Create the debugfs files and directories
@@ -1414,7 +1411,6 @@ static int iwl_trans_pcie_dbgfs_register(struct iwl_trans *trans,
 	DEBUGFS_ADD_FILE(interrupt, dir, S_IWUSR | S_IRUSR);
 	DEBUGFS_ADD_FILE(csr, dir, S_IWUSR);
 	DEBUGFS_ADD_FILE(fh_reg, dir, S_IRUSR);
-	DEBUGFS_ADD_FILE(fw_restart, dir, S_IWUSR);
 	return 0;
 
 err:
@@ -1427,7 +1423,7 @@ static int iwl_trans_pcie_dbgfs_register(struct iwl_trans *trans,
 {
 	return 0;
 }
-#endif /*CONFIG_IWLWIFI_DEBUGFS */
+#endif /*CPTCFG_IWLWIFI_DEBUGFS */
 
 static const struct iwl_trans_ops trans_ops_pcie = {
 	.start_hw = iwl_trans_pcie_start_hw,

@@ -31,10 +31,8 @@
  * - doesn't track currently in use pages
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) "[TTM] " fmt
 
-#include <linux/printk.h>
 #include <linux/list.h>
 #include <linux/spinlock.h>
 #include <linux/highmem.h>

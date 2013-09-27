@@ -9,19 +9,19 @@
  */
 
 #include <linux/mmc/sdio_func.h>
-
+#include <linux/seq_file.h>
 #include "compat-2.6.34.h"
 
-static mmc_pm_flag_t compat_mmc_pm_flags;
+static mmc_pm_flag_t backport_mmc_pm_flags;
 
-void init_compat_mmc_pm_flags(void)
+void backport_init_mmc_pm_flags(void)
 {
-	compat_mmc_pm_flags = 0;
+	backport_mmc_pm_flags = 0;
 }
 
 mmc_pm_flag_t sdio_get_host_pm_caps(struct sdio_func *func)
 {
-	return compat_mmc_pm_flags;
+	return backport_mmc_pm_flags;
 }
 
 int sdio_set_host_pm_flags(struct sdio_func *func, mmc_pm_flag_t flags)
@@ -36,7 +36,8 @@ int sdio_set_host_pm_flags(struct sdio_func *func, mmc_pm_flag_t flags)
  *
  * Called at seq_file->op->start().
  */
-struct hlist_node *seq_hlist_start(struct hlist_head *head, loff_t pos)
+static struct hlist_node *
+seq_hlist_start(struct hlist_head *head, loff_t pos)
 {
 	struct hlist_node *node;
 
@@ -61,7 +62,7 @@ struct hlist_node *seq_hlist_start_head(struct hlist_head *head, loff_t pos)
 
 	return seq_hlist_start(head, pos - 1);
 }
-EXPORT_SYMBOL(seq_hlist_start_head);
+EXPORT_SYMBOL_GPL(seq_hlist_start_head);
 
 /**
  * seq_hlist_next - move to the next position of the hlist
@@ -82,4 +83,4 @@ struct hlist_node *seq_hlist_next(void *v, struct hlist_head *head,
 	else
 		return node->next;
 }
-EXPORT_SYMBOL(seq_hlist_next);
+EXPORT_SYMBOL_GPL(seq_hlist_next);

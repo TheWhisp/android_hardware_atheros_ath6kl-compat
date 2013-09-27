@@ -11,4 +11,4 @@ ifeq ($(CONFIG_SWIOTLB),y)
 ttm-y += ttm_page_alloc_dma.o
 endif
 
-obj-$(CONFIG_COMPAT_DRM_TTM) += ttm.o
+obj-$(CPTCFG_DRM_TTM) += ttm.o

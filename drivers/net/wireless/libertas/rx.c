@@ -2,10 +2,8 @@
  * This file contains the handling of RX in wlan driver.
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
-#include <linux/printk.h>
 #include <linux/etherdevice.h>
 #include <linux/hardirq.h>
 #include <linux/slab.h>

@@ -314,7 +314,7 @@ static inline struct ath9k_htc_tx_ctl *HTC_SKB_CB(struct sk_buff *skb)
 	return (struct ath9k_htc_tx_ctl *) &tx_info->driver_data;
 }
 
-#ifdef CONFIG_ATH9K_HTC_DEBUGFS
+#ifdef CPTCFG_ATH9K_HTC_DEBUGFS
 
 #define TX_STAT_INC(c) (hif_dev->htc_handle->drv_priv->debug.tx_stats.c++)
 #define RX_STAT_INC(c) (hif_dev->htc_handle->drv_priv->debug.rx_stats.c++)
@@ -368,7 +368,7 @@ static inline void ath9k_htc_err_stat_rx(struct ath9k_htc_priv *priv,
 {
 }
 
-#endif /* CONFIG_ATH9K_HTC_DEBUGFS */
+#endif /* CPTCFG_ATH9K_HTC_DEBUGFS */
 
 #define ATH_LED_PIN_DEF             1
 #define ATH_LED_PIN_9287            10
@@ -401,7 +401,7 @@ struct ath_btcoex {
 	u32 btscan_no_stomp;
 };
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 void ath9k_htc_init_btcoex(struct ath9k_htc_priv *priv, char *product);
 void ath9k_htc_start_btcoex(struct ath9k_htc_priv *priv);
 void ath9k_htc_stop_btcoex(struct ath9k_htc_priv *priv);
@@ -415,7 +415,7 @@ static inline void ath9k_htc_start_btcoex(struct ath9k_htc_priv *priv)
 static inline void ath9k_htc_stop_btcoex(struct ath9k_htc_priv *priv)
 {
 }
-#endif /* CONFIG_ATH9K_BTCOEX_SUPPORT */
+#endif /* CPTCFG_ATH9K_BTCOEX_SUPPORT */
 
 #define OP_INVALID		   BIT(0)
 #define OP_SCANNING		   BIT(1)
@@ -484,7 +484,7 @@ struct ath9k_htc_priv {
 	bool ps_enabled;
 	bool ps_idle;
 
-#ifdef CONFIG_MAC80211_LEDS
+#ifdef CPTCFG_MAC80211_LEDS
 	enum led_brightness brightness;
 	bool led_registered;
 	char led_name[32];
@@ -496,13 +496,13 @@ struct ath9k_htc_priv {
 	int cabq;
 	int hwq_map[IEEE80211_NUM_ACS];
 
-#ifdef CONFIG_ATH9K_BTCOEX_SUPPORT
+#ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
 	struct ath_btcoex btcoex;
 #endif
 
 	struct delayed_work coex_period_work;
 	struct delayed_work duty_cycle_work;
-#ifdef CONFIG_ATH9K_HTC_DEBUGFS
+#ifdef CPTCFG_ATH9K_HTC_DEBUGFS
 	struct ath9k_debug debug;
 #endif
 	struct mutex mutex;
@@ -575,7 +575,7 @@ bool ath9k_htc_setpower(struct ath9k_htc_priv *priv,
 void ath9k_start_rfkill_poll(struct ath9k_htc_priv *priv);
 void ath9k_htc_rfkill_poll_state(struct ieee80211_hw *hw);
 
-#ifdef CONFIG_MAC80211_LEDS
+#ifdef CPTCFG_MAC80211_LEDS
 void ath9k_init_leds(struct ath9k_htc_priv *priv);
 void ath9k_deinit_leds(struct ath9k_htc_priv *priv);
 void ath9k_led_work(struct work_struct *work);
@@ -600,10 +600,10 @@ void ath9k_htc_disconnect_device(struct htc_target *htc_handle, bool hotunplug);
 void ath9k_htc_suspend(struct htc_target *htc_handle);
 int ath9k_htc_resume(struct htc_target *htc_handle);
 #endif
-#ifdef CONFIG_ATH9K_HTC_DEBUGFS
+#ifdef CPTCFG_ATH9K_HTC_DEBUGFS
 int ath9k_htc_init_debug(struct ath_hw *ah);
 #else
 static inline int ath9k_htc_init_debug(struct ath_hw *ah) { return 0; };
-#endif /* CONFIG_ATH9K_HTC_DEBUGFS */
+#endif /* CPTCFG_ATH9K_HTC_DEBUGFS */
 
 #endif /* HTC_H */

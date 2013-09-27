@@ -802,7 +802,7 @@ irqreturn_t iwl_pcie_irq_handler(int irq, void *dev_id)
 	u32 handled = 0;
 	unsigned long flags;
 	u32 i;
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	u32 inta_mask;
 #endif
 
@@ -826,7 +826,7 @@ irqreturn_t iwl_pcie_irq_handler(int irq, void *dev_id)
 
 	inta = trans_pcie->inta;
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (iwl_have_debug_level(IWL_DL_ISR)) {
 		/* just for debug */
 		inta_mask = iwl_read32(trans, CSR_INT_MASK);
@@ -855,7 +855,7 @@ irqreturn_t iwl_pcie_irq_handler(int irq, void *dev_id)
 		goto out;
 	}
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (iwl_have_debug_level(IWL_DL_ISR)) {
 		/* NIC fires this, but we don't use it, redundant with WAKEUP */
 		if (inta & CSR_INT_BIT_SCD) {
@@ -1118,7 +1118,7 @@ static irqreturn_t iwl_pcie_isr(int irq, void *data)
 	struct iwl_trans *trans = data;
 	struct iwl_trans_pcie *trans_pcie = IWL_TRANS_GET_PCIE_TRANS(trans);
 	u32 inta, inta_mask;
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	u32 inta_fh;
 #endif
 
@@ -1159,7 +1159,7 @@ static irqreturn_t iwl_pcie_isr(int irq, void *data)
 		return IRQ_HANDLED;
 	}
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	if (iwl_have_debug_level(IWL_DL_ISR)) {
 		inta_fh = iwl_read32(trans, CSR_FH_INT_STATUS);
 		IWL_DEBUG_ISR(trans, "ISR inta 0x%08x, enabled 0x%08x, "

@@ -28,10 +28,8 @@
  * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) "[TTM] " fmt
 
-#include <linux/printk.h>
 #include <linux/sched.h>
 #include <linux/highmem.h>
 #include <linux/pagemap.h>

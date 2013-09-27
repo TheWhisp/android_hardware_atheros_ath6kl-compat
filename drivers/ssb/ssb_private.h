@@ -8,20 +8,31 @@
 
 #define PFX	"ssb: "
 
-#ifdef CONFIG_SSB_SILENT
-# define ssb_printk(fmt, x...)	do { /* nothing */ } while (0)
+#ifdef CPTCFG_SSB_SILENT
+# define ssb_printk(fmt, ...)					\
+	do { if (0) printk(fmt, ##__VA_ARGS__); } while (0)
 #else
-# define ssb_printk		printk
-#endif /* CONFIG_SSB_SILENT */
+# define ssb_printk(fmt, ...)					\
+	printk(fmt, ##__VA_ARGS__)
+#endif /* CPTCFG_SSB_SILENT */
+
+#define ssb_emerg(fmt, ...)	ssb_printk(KERN_EMERG PFX fmt, ##__VA_ARGS__)
+#define ssb_err(fmt, ...)	ssb_printk(KERN_ERR PFX fmt, ##__VA_ARGS__)
+#define ssb_warn(fmt, ...)	ssb_printk(KERN_WARNING PFX fmt, ##__VA_ARGS__)
+#define ssb_notice(fmt, ...)	ssb_printk(KERN_NOTICE PFX fmt, ##__VA_ARGS__)
+#define ssb_info(fmt, ...)	ssb_printk(KERN_INFO PFX fmt, ##__VA_ARGS__)
+#define ssb_cont(fmt, ...)	ssb_printk(KERN_CONT fmt, ##__VA_ARGS__)
 
 /* dprintk: Debugging printk; vanishes for non-debug compilation */
-#ifdef CONFIG_SSB_DEBUG
-# define ssb_dprintk(fmt, x...)	ssb_printk(fmt , ##x)
+#ifdef CPTCFG_SSB_DEBUG
+# define ssb_dbg(fmt, ...)					\
+	ssb_printk(KERN_DEBUG PFX fmt, ##__VA_ARGS__)
 #else
-# define ssb_dprintk(fmt, x...)	do { /* nothing */ } while (0)
+# define ssb_dbg(fmt, ...)					\
+	do { if (0) printk(KERN_DEBUG PFX fmt, ##__VA_ARGS__); } while (0)
 #endif
 
-#ifdef CONFIG_SSB_DEBUG
+#ifdef CPTCFG_SSB_DEBUG
 # define SSB_WARN_ON(x)		WARN_ON(x)
 # define SSB_BUG_ON(x)		BUG_ON(x)
 #else
@@ -32,7 +43,7 @@ static inline int __ssb_do_nothing(int x) { return x; }
 
 
 /* pci.c */
-#ifdef CONFIG_SSB_PCIHOST
+#ifdef CPTCFG_SSB_PCIHOST
 extern int ssb_pci_switch_core(struct ssb_bus *bus,
 			       struct ssb_device *dev);
 extern int ssb_pci_switch_coreidx(struct ssb_bus *bus,
@@ -45,7 +56,7 @@ extern void ssb_pci_exit(struct ssb_bus *bus);
 extern int ssb_pci_init(struct ssb_bus *bus);
 extern const struct ssb_bus_ops ssb_pci_ops;
 
-#else /* CONFIG_SSB_PCIHOST */
+#else /* CPTCFG_SSB_PCIHOST */
 
 static inline int ssb_pci_switch_core(struct ssb_bus *bus,
 				      struct ssb_device *dev)
@@ -69,11 +80,11 @@ static inline int ssb_pci_init(struct ssb_bus *bus)
 {
 	return 0;
 }
-#endif /* CONFIG_SSB_PCIHOST */
+#endif /* CPTCFG_SSB_PCIHOST */
 
 
 /* pcmcia.c */
-#ifdef CONFIG_SSB_PCMCIAHOST
+#ifdef CPTCFG_SSB_PCMCIAHOST
 extern int ssb_pcmcia_switch_core(struct ssb_bus *bus,
 				  struct ssb_device *dev);
 extern int ssb_pcmcia_switch_coreidx(struct ssb_bus *bus,
@@ -86,7 +97,7 @@ extern int ssb_pcmcia_hardware_setup(struct ssb_bus *bus);
 extern void ssb_pcmcia_exit(struct ssb_bus *bus);
 extern int ssb_pcmcia_init(struct ssb_bus *bus);
 extern const struct ssb_bus_ops ssb_pcmcia_ops;
-#else /* CONFIG_SSB_PCMCIAHOST */
+#else /* CPTCFG_SSB_PCMCIAHOST */
 static inline int ssb_pcmcia_switch_core(struct ssb_bus *bus,
 					 struct ssb_device *dev)
 {
@@ -113,10 +124,10 @@ static inline int ssb_pcmcia_init(struct ssb_bus *bus)
 {
 	return 0;
 }
-#endif /* CONFIG_SSB_PCMCIAHOST */
+#endif /* CPTCFG_SSB_PCMCIAHOST */
 
 /* sdio.c */
-#ifdef CONFIG_SSB_SDIOHOST
+#ifdef CPTCFG_SSB_SDIOHOST
 extern int ssb_sdio_get_invariants(struct ssb_bus *bus,
 				     struct ssb_init_invariants *iv);
 
@@ -128,7 +139,7 @@ extern void ssb_sdio_exit(struct ssb_bus *bus);
 extern int ssb_sdio_init(struct ssb_bus *bus);
 
 extern const struct ssb_bus_ops ssb_sdio_ops;
-#else /* CONFIG_SSB_SDIOHOST */
+#else /* CPTCFG_SSB_SDIOHOST */
 static inline u32 ssb_sdio_scan_read32(struct ssb_bus *bus, u16 offset)
 {
 	return 0;
@@ -153,7 +164,7 @@ static inline int ssb_sdio_init(struct ssb_bus *bus)
 {
 	return 0;
 }
-#endif /* CONFIG_SSB_SDIOHOST */
+#endif /* CPTCFG_SSB_SDIOHOST */
 
 
 /* scan.c */
@@ -195,10 +206,10 @@ extern int ssb_devices_thaw(struct ssb_freeze_context *ctx);
 
 
 /* b43_pci_bridge.c */
-#ifdef CONFIG_SSB_B43_PCI_BRIDGE
+#ifdef CPTCFG_SSB_B43_PCI_BRIDGE
 extern int __init b43_pci_ssb_bridge_init(void);
 extern void __exit b43_pci_ssb_bridge_exit(void);
-#else /* CONFIG_SSB_B43_PCI_BRIDGE */
+#else /* CPTCFG_SSB_B43_PCI_BRIDGE */
 static inline int b43_pci_ssb_bridge_init(void)
 {
 	return 0;
@@ -206,7 +217,7 @@ static inline int b43_pci_ssb_bridge_init(void)
 static inline void b43_pci_ssb_bridge_exit(void)
 {
 }
-#endif /* CONFIG_SSB_B43_PCI_BRIDGE */
+#endif /* CPTCFG_SSB_B43_PCI_BRIDGE */
 
 /* driver_chipcommon_pmu.c */
 extern u32 ssb_pmu_get_cpu_clock(struct ssb_chipcommon *cc);
@@ -218,7 +229,7 @@ extern u32 ssb_chipco_watchdog_timer_set_wdt(struct bcm47xx_wdt *wdt,
 extern u32 ssb_chipco_watchdog_timer_set_ms(struct bcm47xx_wdt *wdt, u32 ms);
 
 /* driver_chipcommon_sflash.c */
-#ifdef CONFIG_SSB_SFLASH
+#ifdef CPTCFG_SSB_SFLASH
 int ssb_sflash_init(struct ssb_chipcommon *cc);
 #else
 static inline int ssb_sflash_init(struct ssb_chipcommon *cc)
@@ -226,13 +237,13 @@ static inline int ssb_sflash_init(struct ssb_chipcommon *cc)
 	pr_err("Serial flash not supported\n");
 	return 0;
 }
-#endif /* CONFIG_SSB_SFLASH */
+#endif /* CPTCFG_SSB_SFLASH */
 
-#ifdef CONFIG_SSB_DRIVER_MIPS
+#ifdef CPTCFG_SSB_DRIVER_MIPS
 extern struct platform_device ssb_pflash_dev;
 #endif
 
-#ifdef CONFIG_SSB_DRIVER_EXTIF
+#ifdef CPTCFG_SSB_DRIVER_EXTIF
 extern u32 ssb_extif_watchdog_timer_set_wdt(struct bcm47xx_wdt *wdt, u32 ticks);
 extern u32 ssb_extif_watchdog_timer_set_ms(struct bcm47xx_wdt *wdt, u32 ms);
 #else
@@ -248,16 +259,16 @@ static inline u32 ssb_extif_watchdog_timer_set_ms(struct bcm47xx_wdt *wdt,
 }
 #endif
 
-#ifdef CONFIG_SSB_EMBEDDED
+#ifdef CPTCFG_SSB_EMBEDDED
 extern int ssb_watchdog_register(struct ssb_bus *bus);
-#else /* CONFIG_SSB_EMBEDDED */
+#else /* CPTCFG_SSB_EMBEDDED */
 static inline int ssb_watchdog_register(struct ssb_bus *bus)
 {
 	return 0;
 }
-#endif /* CONFIG_SSB_EMBEDDED */
+#endif /* CPTCFG_SSB_EMBEDDED */
 
-#ifdef CONFIG_SSB_DRIVER_EXTIF
+#ifdef CPTCFG_SSB_DRIVER_EXTIF
 extern void ssb_extif_init(struct ssb_extif *extif);
 #else
 static inline void ssb_extif_init(struct ssb_extif *extif)
@@ -265,10 +276,10 @@ static inline void ssb_extif_init(struct ssb_extif *extif)
 }
 #endif
 
-#ifdef CONFIG_SSB_DRIVER_GPIO
+#ifdef CPTCFG_SSB_DRIVER_GPIO
 extern int ssb_gpio_init(struct ssb_bus *bus);
 extern int ssb_gpio_unregister(struct ssb_bus *bus);
-#else /* CONFIG_SSB_DRIVER_GPIO */
+#else /* CPTCFG_SSB_DRIVER_GPIO */
 static inline int ssb_gpio_init(struct ssb_bus *bus)
 {
 	return -ENOTSUPP;
@@ -277,6 +288,6 @@ static inline int ssb_gpio_unregister(struct ssb_bus *bus)
 {
 	return 0;
 }
-#endif /* CONFIG_SSB_DRIVER_GPIO */
+#endif /* CPTCFG_SSB_DRIVER_GPIO */
 
 #endif /* LINUX_SSB_PRIVATE_H_ */

@@ -23,7 +23,6 @@
  *
  * Authors: Alex Deucher
  */
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
 #include <drm/drmP.h>
 
 #include "radeon.h"
@@ -97,4 +96,3 @@ int radeon_gem_prime_pin(struct drm_gem_object *obj)
 
 	return 0;
 }
-#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)) */

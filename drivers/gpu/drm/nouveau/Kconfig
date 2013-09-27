@@ -1,20 +1,21 @@
 config DRM_NOUVEAU
 	tristate "Nouveau (nVidia) cards"
+	depends on m
 	depends on DRM && PCI
-        select FW_LOADER
+        select BACKPORT_FW_LOADER
 	select DRM_KMS_HELPER
 	select DRM_TTM
-	select FB_CFB_FILLRECT
-	select FB_CFB_COPYAREA
-	select FB_CFB_IMAGEBLIT
-	select FB
+	depends on FB_CFB_FILLRECT
+	depends on FB_CFB_COPYAREA
+	depends on FB_CFB_IMAGEBLIT
+	depends on FB
 	select FRAMEBUFFER_CONSOLE if !EXPERT
 	select FB_BACKLIGHT if DRM_NOUVEAU_BACKLIGHT
 	select ACPI_VIDEO if ACPI && X86 && BACKLIGHT_CLASS_DEVICE && VIDEO_OUTPUT_CONTROL && INPUT
 	select X86_PLATFORM_DEVICES if ACPI && X86
 	select ACPI_WMI if ACPI && X86
 	select MXM_WMI if ACPI && X86
-	select POWER_SUPPLY
+	depends on POWER_SUPPLY
 	help
 	  Choose this option for open-source nVidia support.
 

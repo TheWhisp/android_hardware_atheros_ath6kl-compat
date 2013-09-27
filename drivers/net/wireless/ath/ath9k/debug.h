@@ -25,7 +25,7 @@ struct ath_txq;
 struct ath_buf;
 struct fft_sample_tlv;
 
-#ifdef CONFIG_ATH9K_DEBUGFS
+#ifdef CPTCFG_ATH9K_DEBUGFS
 #define TX_STAT_INC(q, c) sc->debug.stats.txstats[q].c++
 #define RESET_STAT_INC(sc, type) sc->debug.stats.reset[type]++
 #else
@@ -46,7 +46,7 @@ enum ath_reset_type {
 	__RESET_TYPE_MAX
 };
 
-#ifdef CONFIG_ATH9K_DEBUGFS
+#ifdef CPTCFG_ATH9K_DEBUGFS
 
 /**
  * struct ath_interrupt_stats - Contains statistics about interrupts
@@ -142,6 +142,7 @@ struct ath_interrupt_stats {
  * @a_completed: Total AMPDUs completed
  * @a_retries: No. of AMPDUs retried (SW)
  * @a_xretries: No. of AMPDUs dropped due to xretries
+ * @txerr_filtered: No. of frames with TXERR_FILT flag set.
  * @fifo_underrun: FIFO underrun occurrences
 	Valid only for:
 		- non-aggregate condition.
@@ -168,6 +169,7 @@ struct ath_tx_stats {
 	u32 a_completed;
 	u32 a_retries;
 	u32 a_xretries;
+	u32 txerr_filtered;
 	u32 fifo_underrun;
 	u32 xtxop;
 	u32 timer_exp;
@@ -292,7 +294,7 @@ struct ath9k_debug {
 	struct dentry *debugfs_phy;
 	u32 regidx;
 	struct ath_stats stats;
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 	spinlock_t samp_lock;
 	struct ath_dbg_bb_mac_samp bb_mac_samp[ATH_DBG_MAX_SAMPLES];
 	u8 sampidx;
@@ -302,6 +304,7 @@ struct ath9k_debug {
 };
 
 int ath9k_init_debug(struct ath_hw *ah);
+void ath9k_deinit_debug(struct ath_softc *sc);
 
 void ath_debug_stat_interrupt(struct ath_softc *sc, enum ath9k_int status);
 void ath_debug_stat_tx(struct ath_softc *sc, struct ath_buf *bf,
@@ -337,6 +340,10 @@ static inline int ath9k_init_debug(struct ath_hw *ah)
 	return 0;
 }
 
+static inline void ath9k_deinit_debug(struct ath_softc *sc)
+{
+}
+
 static inline void ath_debug_stat_interrupt(struct ath_softc *sc,
 					    enum ath9k_int status)
 {
@@ -355,9 +362,9 @@ static inline void ath_debug_stat_rx(struct ath_softc *sc,
 {
 }
 
-#endif /* CONFIG_ATH9K_DEBUGFS */
+#endif /* CPTCFG_ATH9K_DEBUGFS */
 
-#ifdef CONFIG_ATH9K_MAC_DEBUG
+#ifdef CPTCFG_ATH9K_MAC_DEBUG
 
 void ath9k_debug_samp_bb_mac(struct ath_softc *sc);
 

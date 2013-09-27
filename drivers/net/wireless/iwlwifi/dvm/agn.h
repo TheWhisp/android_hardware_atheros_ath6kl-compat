@@ -22,7 +22,7 @@
  * USA
  *
  * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
+ * in the file called COPYING.
  *
  * Contact Information:
  *  Intel Linux Wireless <ilw@linux.intel.com>
@@ -72,6 +72,8 @@
 
 /* AUX (TX during scan dwell) queue */
 #define IWL_AUX_QUEUE		10
+
+#define IWL_INVALID_STATION	255
 
 /* device operations */
 extern struct iwl_lib_ops iwl1000_lib;
@@ -170,13 +172,13 @@ int iwl_calib_set(struct iwl_priv *priv,
 		  const struct iwl_calib_hdr *cmd, int len);
 void iwl_calib_free_results(struct iwl_priv *priv);
 int iwl_dump_nic_event_log(struct iwl_priv *priv, bool full_log,
-			    char **buf, bool display);
+			    char **buf);
 int iwlagn_hw_valid_rtc_data_addr(u32 addr);
 
 /* lib */
 int iwlagn_send_tx_power(struct iwl_priv *priv);
 void iwlagn_temperature(struct iwl_priv *priv);
-int iwlagn_txfifo_flush(struct iwl_priv *priv);
+int iwlagn_txfifo_flush(struct iwl_priv *priv, u32 scd_q_msk);
 void iwlagn_dev_txfifo_flush(struct iwl_priv *priv);
 int iwlagn_send_beacon_cmd(struct iwl_priv *priv);
 int iwl_send_statistics_request(struct iwl_priv *priv,
@@ -210,6 +212,8 @@ int iwlagn_tx_agg_oper(struct iwl_priv *priv, struct ieee80211_vif *vif,
 			struct ieee80211_sta *sta, u16 tid, u8 buf_size);
 int iwlagn_tx_agg_stop(struct iwl_priv *priv, struct ieee80211_vif *vif,
 		       struct ieee80211_sta *sta, u16 tid);
+int iwlagn_tx_agg_flush(struct iwl_priv *priv, struct ieee80211_vif *vif,
+			struct ieee80211_sta *sta, u16 tid);
 int iwlagn_rx_reply_compressed_ba(struct iwl_priv *priv,
 				   struct iwl_rx_cmd_buffer *rxb,
 				   struct iwl_device_cmd *cmd);
@@ -291,7 +295,7 @@ static inline bool iwl_advanced_bt_coexist(struct iwl_priv *priv)
 	       priv->cfg->bt_params->advanced_bt_coexist;
 }
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 const char *iwl_get_tx_fail_reason(u32 status);
 const char *iwl_get_agg_tx_fail_reason(u16 status);
 #else
@@ -399,7 +403,7 @@ static inline __le32 iwl_hw_set_rate_n_flags(u8 rate, u32 flags)
 extern int iwl_alive_start(struct iwl_priv *priv);
 
 /* testmode support */
-#ifdef CONFIG_IWLWIFI_DEVICE_TESTMODE
+#ifdef CPTCFG_IWLWIFI_DEVICE_TESTMODE
 
 extern int iwlagn_mac_testmode_cmd(struct ieee80211_hw *hw, void *data,
 				   int len);
@@ -435,7 +439,7 @@ static inline void iwl_testmode_free(struct iwl_priv *priv)
 }
 #endif
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 void iwl_print_rx_config_cmd(struct iwl_priv *priv,
 			     enum iwl_rxon_context_id ctxid);
 #else
@@ -486,7 +490,7 @@ static inline void iwl_dvm_set_pmi(struct iwl_priv *priv, bool state)
 	iwl_trans_set_pmi(priv->trans, state);
 }
 
-#ifdef CONFIG_IWLWIFI_DEBUGFS
+#ifdef CPTCFG_IWLWIFI_DEBUGFS
 int iwl_dbgfs_register(struct iwl_priv *priv, struct dentry *dbgfs_dir);
 #else
 static inline int iwl_dbgfs_register(struct iwl_priv *priv,
@@ -494,9 +498,9 @@ static inline int iwl_dbgfs_register(struct iwl_priv *priv,
 {
 	return 0;
 }
-#endif /* CONFIG_IWLWIFI_DEBUGFS */
+#endif /* CPTCFG_IWLWIFI_DEBUGFS */
 
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 #define IWL_DEBUG_QUIET_RFKILL(m, fmt, args...)	\
 do {									\
 	if (!iwl_is_rfkill((m)))					\
@@ -514,7 +518,7 @@ do {									\
 	else								\
 		__iwl_err((m)->dev, true, true, fmt, ##args);	\
 } while (0)
-#endif				/* CONFIG_IWLWIFI_DEBUG */
+#endif				/* CPTCFG_IWLWIFI_DEBUG */
 
 extern const char *iwl_dvm_cmd_strings[REPLY_MAX];
 

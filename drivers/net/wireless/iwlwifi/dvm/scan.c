@@ -19,7 +19,7 @@
  * USA
  *
  * The full GNU General Public License is included in this distribution
- * in the file called LICENSE.GPL.
+ * in the file called COPYING.
  *
  * Contact Information:
  *  Intel Linux Wireless <ilw@linux.intel.com>
@@ -257,7 +257,7 @@ static int iwl_rx_reply_scan(struct iwl_priv *priv,
 			      struct iwl_rx_cmd_buffer *rxb,
 			      struct iwl_device_cmd *cmd)
 {
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	struct iwl_rx_packet *pkt = rxb_addr(rxb);
 	struct iwl_scanreq_notification *notif = (void *)pkt->data;
 
@@ -298,7 +298,7 @@ static int iwl_rx_scan_results_notif(struct iwl_priv *priv,
 				      struct iwl_rx_cmd_buffer *rxb,
 				      struct iwl_device_cmd *cmd)
 {
-#ifdef CONFIG_IWLWIFI_DEBUG
+#ifdef CPTCFG_IWLWIFI_DEBUG
 	struct iwl_rx_packet *pkt = rxb_addr(rxb);
 	struct iwl_scanresults_notification *notif = (void *)pkt->data;
 

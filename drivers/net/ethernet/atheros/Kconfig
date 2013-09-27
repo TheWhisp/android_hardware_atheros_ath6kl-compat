@@ -20,10 +20,11 @@ if NET_VENDOR_ATHEROS
 
 config ATL2
 	tristate "Atheros L2 Fast Ethernet support"
+	depends on m
 	depends on PCI
-	select CRC32
+	depends on CRC32
 	select NET_CORE
-	select MII
+	select BACKPORT_MII
 	---help---
 	  This driver supports the Atheros L2 fast ethernet adapter.
 
@@ -32,10 +33,11 @@ config ATL2
 
 config ATL1
 	tristate "Atheros/Attansic L1 Gigabit Ethernet support"
+	depends on m
 	depends on PCI
-	select CRC32
+	depends on CRC32
 	select NET_CORE
-	select MII
+	select BACKPORT_MII
 	---help---
 	  This driver supports the Atheros/Attansic L1 gigabit ethernet
 	  adapter.
@@ -44,11 +46,13 @@ config ATL1
 	  will be called atl1.
 
 config ATL1E
+	depends on !BACKPORT_KERNEL_2_6_26
 	tristate "Atheros L1E Gigabit Ethernet support"
+	depends on m
 	depends on PCI
-	select CRC32
+	depends on CRC32
 	select NET_CORE
-	select MII
+	select BACKPORT_MII
 	---help---
 	  This driver supports the Atheros L1E gigabit ethernet adapter.
 
@@ -56,15 +60,37 @@ config ATL1E
 	  will be called atl1e.
 
 config ATL1C
+	depends on !BACKPORT_KERNEL_2_6_28
 	tristate "Atheros L1C Gigabit Ethernet support"
+	depends on m
 	depends on PCI
-	select CRC32
+	depends on CRC32
 	select NET_CORE
-	select MII
+	select BACKPORT_MII
 	---help---
 	  This driver supports the Atheros L1C gigabit ethernet adapter.
 
 	  To compile this driver as a module, choose M here.  The module
 	  will be called atl1c.
+
+config ALX
+	depends on !BACKPORT_KERNEL_2_6_31
+	tristate "Qualcomm Atheros AR816x/AR817x support"
+	depends on m
+	depends on PCI
+	depends on CRC32
+	select NET_CORE
+	select MDIO
+	help
+	  This driver supports the Qualcomm Atheros L1F ethernet adapter,
+	  i.e. the following chipsets:
+
+	  1969:1091 - AR8161 Gigabit Ethernet
+	  1969:1090 - AR8162 Fast Ethernet
+	  1969:10A1 - AR8171 Gigabit Ethernet
+	  1969:10A0 - AR8172 Fast Ethernet
+
+	  To compile this driver as a module, choose M here.  The module
+	  will be called alx.
 
 endif # NET_VENDOR_ATHEROS

@@ -39,14 +39,15 @@ mwifiex-y += sta_tx.o
 mwifiex-y += sta_rx.o
 mwifiex-y += uap_txrx.o
 mwifiex-y += cfg80211.o
+mwifiex-y += ethtool.o
 mwifiex-$(CONFIG_DEBUG_FS) += debugfs.o
-obj-$(CONFIG_COMPAT_MWIFIEX) += mwifiex.o
+obj-$(CPTCFG_MWIFIEX) += mwifiex.o
 
 mwifiex_sdio-y += sdio.o
-obj-$(CONFIG_MWIFIEX_SDIO) += mwifiex_sdio.o
+obj-$(CPTCFG_MWIFIEX_SDIO) += mwifiex_sdio.o
 
 mwifiex_pcie-y += pcie.o
-obj-$(CONFIG_MWIFIEX_PCIE) += mwifiex_pcie.o
+obj-$(CPTCFG_MWIFIEX_PCIE) += mwifiex_pcie.o
 
 mwifiex_usb-y += usb.o
-obj-$(CONFIG_MWIFIEX_USB) += mwifiex_usb.o
+obj-$(CPTCFG_MWIFIEX_USB) += mwifiex_usb.o

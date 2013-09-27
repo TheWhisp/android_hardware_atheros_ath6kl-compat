@@ -1,10 +1,11 @@
 config DRM_VMWGFX
 	tristate "DRM driver for VMware Virtual GPU"
+	depends on m
 	depends on DRM && PCI && FB
-	select FB_DEFERRED_IO
-	select FB_CFB_FILLRECT
-	select FB_CFB_COPYAREA
-	select FB_CFB_IMAGEBLIT
+	depends on FB_DEFERRED_IO
+	depends on FB_CFB_FILLRECT
+	depends on FB_CFB_COPYAREA
+	depends on FB_CFB_IMAGEBLIT
 	select DRM_TTM
 	help
 	  Choose this option if you would like to run 3D acceleration

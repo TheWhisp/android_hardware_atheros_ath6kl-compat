@@ -211,13 +211,13 @@ struct ath_rate_priv {
 	struct ath_rateset neg_ht_rates;
 	const struct ath_rate_table *rate_table;
 
-#if defined(CONFIG_MAC80211_DEBUGFS) && defined(CONFIG_ATH9K_DEBUGFS)
+#if defined(CPTCFG_MAC80211_DEBUGFS) && defined(CPTCFG_ATH9K_DEBUGFS)
 	struct dentry *debugfs_rcstats;
 	struct ath_rc_stats rcstats[RATE_TABLE_SIZE];
 #endif
 };
 
-#if defined(CONFIG_MAC80211_DEBUGFS) && defined(CONFIG_ATH9K_DEBUGFS)
+#if defined(CPTCFG_MAC80211_DEBUGFS) && defined(CPTCFG_ATH9K_DEBUGFS)
 void ath_debug_stat_rc(struct ath_rate_priv *rc, int final_rate);
 void ath_debug_stat_retries(struct ath_rate_priv *rc, int rix,
 			    int xretries, int retries, u8 per);
@@ -231,7 +231,7 @@ static inline void ath_debug_stat_retries(struct ath_rate_priv *rc, int rix,
 }
 #endif
 
-#ifdef CONFIG_COMPAT_ATH9K_RATE_CONTROL
+#ifdef CPTCFG_ATH9K_LEGACY_RATE_CONTROL
 int ath_rate_control_register(void);
 void ath_rate_control_unregister(void);
 #else

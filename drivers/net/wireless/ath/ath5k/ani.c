@@ -14,10 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-
-#include <linux/printk.h>
 
 #include "ath5k.h"
 #include "reg.h"
@@ -721,7 +718,7 @@ ath5k_ani_init(struct ath5k_hw *ah, enum ath5k_ani_mode mode)
 * Debug output *
 \**************/
 
-#ifdef CONFIG_ATH5K_DEBUG
+#ifdef CPTCFG_ATH5K_DEBUG
 
 /**
  * ath5k_ani_print_counters() - Print ANI counters

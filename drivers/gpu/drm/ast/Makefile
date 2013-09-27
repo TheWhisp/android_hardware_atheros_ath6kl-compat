@@ -6,4 +6,4 @@ ccflags-y := -Iinclude/drm
 
 ast-y := ast_drv.o ast_main.o ast_mode.o ast_fb.o ast_ttm.o ast_post.o
 
-obj-$(CONFIG_COMPAT_DRM_AST) := ast.o
+obj-$(CPTCFG_DRM_AST) := ast.o

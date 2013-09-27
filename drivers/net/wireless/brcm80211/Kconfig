@@ -1,22 +1,27 @@
 config BRCMUTIL
 	tristate
+	depends on m
 
 config BRCMSMAC
 	tristate "Broadcom IEEE802.11n PCIe SoftMAC WLAN driver"
+	depends on m
 	depends on MAC80211
 	depends on BCMA
 	select BRCMUTIL
-	select FW_LOADER
-	select CRC_CCITT
-	select CRC8
-	select CORDIC
+	select BACKPORT_FW_LOADER
+	depends on CRC_CCITT
+	select BACKPORT_CRC8
+	select BACKPORT_CORDIC
 	---help---
 	  This module adds support for PCIe wireless adapters based on Broadcom
-	  IEEE802.11n SoftMAC chipsets.  If you choose to build a module, it'll
-	  be called brcmsmac.ko.
+	  IEEE802.11n SoftMAC chipsets. It also has WLAN led support, which will
+	  be available if you select BCMA_DRIVER_GPIO. If you choose to build a
+	  module, the driver will be called brcmsmac.ko.
 
 config BRCMFMAC
+	depends on !BACKPORT_KERNEL_2_6_29
 	tristate "Broadcom IEEE802.11n embedded FullMAC WLAN driver"
+	depends on m
 	depends on CFG80211
 	select BRCMUTIL
 	---help---
@@ -29,27 +34,18 @@ config BRCMFMAC_SDIO
 	bool "SDIO bus interface support for FullMAC driver"
 	depends on MMC
 	depends on BRCMFMAC
-	select FW_LOADER
+	select BACKPORT_FW_LOADER
 	default y
 	---help---
 	  This option enables the SDIO bus interface support for Broadcom
 	  IEEE802.11n embedded FullMAC WLAN driver. Say Y if you want to
 	  use the driver for a SDIO wireless card.
 
-config BRCMFMAC_SDIO_OOB
-	bool "Out of band interrupt support for SDIO interface chipset"
-	depends on BRCMFMAC_SDIO
-	---help---
-	  This option enables out-of-band interrupt support for Broadcom
-	  SDIO Wifi chipset using fullmac in order to gain better
-	  performance and deep sleep wake up capability on certain
-	  platforms. Say N if you are unsure.
-
 config BRCMFMAC_USB
 	bool "USB bus interface support for FullMAC driver"
 	depends on USB
 	depends on BRCMFMAC
-	select FW_LOADER
+	select BACKPORT_FW_LOADER
 	---help---
 	  This option enables the USB bus interface support for Broadcom
 	  IEEE802.11n embedded FullMAC WLAN driver. Say Y if you want to
@@ -67,6 +63,7 @@ config BRCM_TRACING
 	  you when wireless problems occur.
 
 config BRCMDBG
+	depends on !BACKPORT_KERNEL_2_6_30
 	bool "Broadcom driver debug functions"
 	depends on BRCMSMAC || BRCMFMAC
 	---help---

@@ -63,7 +63,7 @@ struct ath_dfs_pool_stats {
 	u32 pseq_alloc_error;
 	u32 pseq_used;
 };
-#if defined(CONFIG_ATH9K_DFS_DEBUGFS)
+#if defined(CPTCFG_ATH9K_DFS_DEBUGFS)
 
 #define DFS_STAT_INC(sc, c) (sc->debug.stats.dfs_stats.c++)
 void ath9k_dfs_init_debug(struct ath_softc *sc);
@@ -79,6 +79,6 @@ static inline void ath9k_dfs_init_debug(struct ath_softc *sc) { }
 
 #define DFS_POOL_STAT_INC(c) do { } while (0)
 #define DFS_POOL_STAT_DEC(c) do { } while (0)
-#endif /* CONFIG_ATH9K_DFS_DEBUGFS */
+#endif /* CPTCFG_ATH9K_DFS_DEBUGFS */
 
 #endif /* ATH9K_DFS_DEBUG_H */

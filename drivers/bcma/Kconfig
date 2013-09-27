@@ -8,6 +8,7 @@ menu "Broadcom specific AMBA"
 
 config BCMA
 	tristate "BCMA support"
+	depends on m
 	depends on BCMA_POSSIBLE
 	help
 	  Bus driver for Broadcom specific Advanced Microcontroller Bus
@@ -38,6 +39,7 @@ config BCMA_HOST_SOC
 	depends on BCMA_DRIVER_MIPS
 
 config BCMA_DRIVER_MIPS
+	depends on !BACKPORT_KERNEL_3_3
 	bool "BCMA Broadcom MIPS core driver"
 	depends on BCMA && MIPS
 	help
@@ -66,6 +68,8 @@ config BCMA_DRIVER_GMAC_CMN
 	  If unsure, say N
 
 config BCMA_DRIVER_GPIO
+	depends on !BACKPORT_KERNEL_2_6_28
+	depends on !BACKPORT_KERNEL_3_0
 	bool "BCMA GPIO driver"
 	depends on BCMA && GPIOLIB
 	help

@@ -109,7 +109,7 @@ static int ssb_gpio_chipco_init(struct ssb_bus *bus)
 	return gpiochip_add(chip);
 }
 
-#ifdef CONFIG_SSB_DRIVER_EXTIF
+#ifdef CPTCFG_SSB_DRIVER_EXTIF
 
 static int ssb_gpio_extif_get_value(struct gpio_chip *chip, unsigned gpio)
 {

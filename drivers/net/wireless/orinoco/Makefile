@@ -3,15 +3,15 @@
 #
 orinoco-objs := main.o fw.o hw.o mic.o scan.o wext.o hermes_dld.o hermes.o cfg.o
 
-obj-$(CONFIG_HERMES)		+= orinoco.o
-obj-$(CONFIG_PCMCIA_HERMES)	+= orinoco_cs.o
-obj-$(CONFIG_APPLE_AIRPORT)	+= airport.o
-obj-$(CONFIG_PLX_HERMES)	+= orinoco_plx.o
-obj-$(CONFIG_PCI_HERMES)	+= orinoco_pci.o
-obj-$(CONFIG_TMD_HERMES)	+= orinoco_tmd.o
-obj-$(CONFIG_NORTEL_HERMES)	+= orinoco_nortel.o
-obj-$(CONFIG_PCMCIA_SPECTRUM)	+= spectrum_cs.o
-obj-$(CONFIG_ORINOCO_USB)	+= orinoco_usb.o
+obj-$(CPTCFG_HERMES)		+= orinoco.o
+obj-$(CPTCFG_PCMCIA_HERMES)	+= orinoco_cs.o
+obj-$(CPTCFG_APPLE_AIRPORT)	+= airport.o
+obj-$(CPTCFG_PLX_HERMES)	+= orinoco_plx.o
+obj-$(CPTCFG_PCI_HERMES)	+= orinoco_pci.o
+obj-$(CPTCFG_TMD_HERMES)	+= orinoco_tmd.o
+obj-$(CPTCFG_NORTEL_HERMES)	+= orinoco_nortel.o
+obj-$(CPTCFG_PCMCIA_SPECTRUM)	+= spectrum_cs.o
+obj-$(CPTCFG_ORINOCO_USB)	+= orinoco_usb.o
 
 # Orinoco should be endian clean.
 ccflags-y += -D__CHECK_ENDIAN__

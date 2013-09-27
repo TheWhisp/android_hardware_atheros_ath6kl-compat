@@ -104,6 +104,7 @@
 #define  BCMA_CC_CHIPST_4706_MIPS_BENDIAN	BIT(3) /* 0: little, 1: big endian */
 #define  BCMA_CC_CHIPST_4706_PCIE1_DISABLE	BIT(5) /* PCIE1 enable strap pin */
 #define  BCMA_CC_CHIPST_5357_NAND_BOOT		BIT(4) /* NAND boot, valid for CC rev 38 and/or BCM5357 */
+#define  BCMA_CC_CHIPST_4360_XTAL_40MZ		0x00000001
 #define BCMA_CC_JCMD			0x0030		/* Rev >= 10 only */
 #define  BCMA_CC_JCMD_START		0x80000000
 #define  BCMA_CC_JCMD_BUSY		0x80000000
@@ -315,6 +316,9 @@
 #define BCMA_CC_PMU_CTL			0x0600 /* PMU control */
 #define  BCMA_CC_PMU_CTL_ILP_DIV	0xFFFF0000 /* ILP div mask */
 #define  BCMA_CC_PMU_CTL_ILP_DIV_SHIFT	16
+#define  BCMA_CC_PMU_CTL_RES		0x00006000 /* reset control mask */
+#define  BCMA_CC_PMU_CTL_RES_SHIFT	13
+#define  BCMA_CC_PMU_CTL_RES_RELOAD	0x2	/* reload POR values */
 #define  BCMA_CC_PMU_CTL_PLL_UPD	0x00000400
 #define  BCMA_CC_PMU_CTL_NOILPONW	0x00000200 /* No ILP on wait */
 #define  BCMA_CC_PMU_CTL_HTREQEN	0x00000100 /* HT req enable */
@@ -511,7 +515,7 @@ struct bcma_chipcommon_pmu {
 	u32 crystalfreq;	/* The active crystal frequency (in kHz) */
 };
 
-#ifdef CONFIG_BCMA_DRIVER_MIPS
+#ifdef CPTCFG_BCMA_DRIVER_MIPS
 struct bcma_pflash {
 	bool present;
 	u8 buswidth;
@@ -519,7 +523,7 @@ struct bcma_pflash {
 	u32 window_size;
 };
 
-#ifdef CONFIG_BCMA_SFLASH
+#ifdef CPTCFG_BCMA_SFLASH
 struct bcma_sflash {
 	bool present;
 	u32 window;
@@ -532,7 +536,7 @@ struct bcma_sflash {
 };
 #endif
 
-#ifdef CONFIG_BCMA_NFLASH
+#ifdef CPTCFG_BCMA_NFLASH
 struct mtd_info;
 
 struct bcma_nflash {
@@ -550,7 +554,7 @@ struct bcma_serial_port {
 	unsigned int baud_base;
 	unsigned int reg_shift;
 };
-#endif /* CONFIG_BCMA_DRIVER_MIPS */
+#endif /* CPTCFG_BCMA_DRIVER_MIPS */
 
 struct bcma_drv_cc {
 	struct bcma_device *core;
@@ -562,24 +566,24 @@ struct bcma_drv_cc {
 	/* Fast Powerup Delay constant */
 	u16 fast_pwrup_delay;
 	struct bcma_chipcommon_pmu pmu;
-#ifdef CONFIG_BCMA_DRIVER_MIPS
+#ifdef CPTCFG_BCMA_DRIVER_MIPS
 	struct bcma_pflash pflash;
-#ifdef CONFIG_BCMA_SFLASH
+#ifdef CPTCFG_BCMA_SFLASH
 	struct bcma_sflash sflash;
 #endif
-#ifdef CONFIG_BCMA_NFLASH
+#ifdef CPTCFG_BCMA_NFLASH
 	struct bcma_nflash nflash;
 #endif
 
 	int nr_serial_ports;
 	struct bcma_serial_port serial_ports[4];
-#endif /* CONFIG_BCMA_DRIVER_MIPS */
+#endif /* CPTCFG_BCMA_DRIVER_MIPS */
 	u32 ticks_per_ms;
 	struct platform_device *watchdog;
 
 	/* Lock for GPIO register access. */
 	spinlock_t gpio_lock;
-#ifdef CONFIG_BCMA_DRIVER_GPIO
+#ifdef CPTCFG_BCMA_DRIVER_GPIO
 	struct gpio_chip gpio;
 #endif
 };
@@ -606,6 +610,8 @@ extern void bcma_chipco_resume(struct bcma_drv_cc *cc);
 void bcma_chipco_bcm4331_ext_pa_lines_ctl(struct bcma_drv_cc *cc, bool enable);
 
 extern u32 bcma_chipco_watchdog_timer_set(struct bcma_drv_cc *cc, u32 ticks);
+
+extern u32 bcma_chipco_get_alp_clock(struct bcma_drv_cc *cc);
 
 void bcma_chipco_irq_mask(struct bcma_drv_cc *cc, u32 mask, u32 value);
 

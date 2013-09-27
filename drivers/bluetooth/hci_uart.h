@@ -90,27 +90,27 @@ int hci_uart_unregister_proto(struct hci_uart_proto *p);
 int hci_uart_tx_wakeup(struct hci_uart *hu);
 int hci_uart_init_ready(struct hci_uart *hu);
 
-#ifdef CONFIG_BT_HCIUART_H4
+#ifdef CPTCFG_BT_HCIUART_H4
 int h4_init(void);
 int h4_deinit(void);
 #endif
 
-#ifdef CONFIG_BT_HCIUART_BCSP
+#ifdef CPTCFG_BT_HCIUART_BCSP
 int bcsp_init(void);
 int bcsp_deinit(void);
 #endif
 
-#ifdef CONFIG_BT_HCIUART_LL
+#ifdef CPTCFG_BT_HCIUART_LL
 int ll_init(void);
 int ll_deinit(void);
 #endif
 
-#ifdef CONFIG_BT_HCIUART_ATH3K
+#ifdef CPTCFG_BT_HCIUART_ATH3K
 int ath_init(void);
 int ath_deinit(void);
 #endif
 
-#ifdef CONFIG_BT_HCIUART_3WIRE
+#ifdef CPTCFG_BT_HCIUART_3WIRE
 int h5_init(void);
 int h5_deinit(void);
 #endif

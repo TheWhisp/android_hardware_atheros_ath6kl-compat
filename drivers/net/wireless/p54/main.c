@@ -340,7 +340,7 @@ static int p54_config(struct ieee80211_hw *dev, u32 changed)
 		 * TODO: Use the LM_SCAN_TRAP to determine the current
 		 * operating channel.
 		 */
-		priv->curchan = priv->hw->conf.channel;
+		priv->curchan = priv->hw->conf.chandef.chan;
 		p54_reset_stats(priv);
 		WARN_ON(p54_fetch_statistics(priv));
 	}
@@ -498,7 +498,7 @@ static void p54_bss_info_changed(struct ieee80211_hw *dev,
 		p54_set_edcf(priv);
 	}
 	if (changed & BSS_CHANGED_BASIC_RATES) {
-		if (dev->conf.channel->band == IEEE80211_BAND_5GHZ)
+		if (dev->conf.chandef.chan->band == IEEE80211_BAND_5GHZ)
 			priv->basic_rate_mask = (info->basic_rates << 4);
 		else
 			priv->basic_rate_mask = info->basic_rates;
@@ -688,7 +688,7 @@ static unsigned int p54_flush_count(struct p54_common *priv)
 	return total;
 }
 
-static void p54_flush(struct ieee80211_hw *dev, bool drop)
+static void p54_flush(struct ieee80211_hw *dev, u32 queues, bool drop)
 {
 	struct p54_common *priv = dev->priv;
 	unsigned int total, i;
@@ -829,13 +829,13 @@ int p54_register_common(struct ieee80211_hw *dev, struct device *pdev)
 	}
 	priv->registered = true;
 
-#ifdef CONFIG_P54_LEDS
+#ifdef CPTCFG_P54_LEDS
 	err = p54_init_leds(priv);
 	if (err) {
 		p54_unregister_common(dev);
 		return err;
 	}
-#endif /* CONFIG_P54_LEDS */
+#endif /* CPTCFG_P54_LEDS */
 
 	dev_info(pdev, "is registered as '%s'\n", wiphy_name(dev->wiphy));
 	return 0;
@@ -870,9 +870,9 @@ void p54_unregister_common(struct ieee80211_hw *dev)
 {
 	struct p54_common *priv = dev->priv;
 
-#ifdef CONFIG_P54_LEDS
+#ifdef CPTCFG_P54_LEDS
 	p54_unregister_leds(priv);
-#endif /* CONFIG_P54_LEDS */
+#endif /* CPTCFG_P54_LEDS */
 
 	if (priv->registered) {
 		priv->registered = false;

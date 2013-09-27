@@ -17,6 +17,6 @@ rtl8723ae-objs :=		\
 		trx.o		\
 
 
-obj-$(CONFIG_RTL8723AE) += rtl8723ae.o
+obj-$(CPTCFG_RTL8723AE) += rtl8723ae.o
 
 ccflags-y += -D__CHECK_ENDIAN__

@@ -8,6 +8,7 @@ menu "Sonics Silicon Backplane"
 
 config SSB
 	tristate "Sonics Silicon Backplane support"
+	depends on m
 	depends on SSB_POSSIBLE
 	help
 	  Support for the Sonics Silicon Backplane bus.
@@ -127,6 +128,7 @@ config SSB_PCICORE_HOSTMODE
 	  PCIcore hostmode operation (external PCI bus).
 
 config SSB_DRIVER_MIPS
+	depends on !BACKPORT_KERNEL_3_3
 	bool "SSB Broadcom MIPS core driver"
 	depends on SSB && MIPS
 	select SSB_SERIAL
@@ -166,6 +168,7 @@ config SSB_DRIVER_GIGE
 	  If unsure, say N
 
 config SSB_DRIVER_GPIO
+	depends on !BACKPORT_KERNEL_2_6_28
 	bool "SSB GPIO driver"
 	depends on SSB && GPIOLIB
 	help

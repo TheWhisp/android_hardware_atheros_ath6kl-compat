@@ -22,8 +22,6 @@
  * Authors: Dave Airlie
  */
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0))
-
 #include <drm/drmP.h>
 
 #include "nouveau_drm.h"
@@ -95,4 +93,3 @@ int nouveau_gem_prime_pin(struct drm_gem_object *obj)
 
 	return 0;
 }
-#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(3,4,0)) */

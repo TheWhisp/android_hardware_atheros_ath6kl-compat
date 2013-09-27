@@ -208,7 +208,7 @@ il3945_hwrate_to_plcp_idx(u8 plcp)
 	return -1;
 }
 
-#ifdef CONFIG_IWLEGACY_DEBUG
+#ifdef CPTCFG_IWLEGACY_DEBUG
 #define TX_STATUS_ENTRY(x) case TX_3945_STATUS_FAIL_ ## x: return #x
 
 static const char *
@@ -368,7 +368,7 @@ il3945_hdl_tx(struct il_priv *il, struct il_rx_buf *rxb)
  *  RX handler implementations
  *
  *****************************************************************************/
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 static void
 il3945_accumulative_stats(struct il_priv *il, __le32 * stats)
 {
@@ -411,7 +411,7 @@ il3945_hdl_stats(struct il_priv *il, struct il_rx_buf *rxb)
 	D_RX("Statistics notification received (%d vs %d).\n",
 	     (int)sizeof(struct il3945_notif_stats),
 	     le32_to_cpu(pkt->len_n_flags) & IL_RX_FRAME_SIZE_MSK);
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 	il3945_accumulative_stats(il, (__le32 *) &pkt->u.raw);
 #endif
 
@@ -425,7 +425,7 @@ il3945_hdl_c_stats(struct il_priv *il, struct il_rx_buf *rxb)
 	__le32 *flag = (__le32 *) &pkt->u.raw;
 
 	if (le32_to_cpu(*flag) & UCODE_STATS_CLEAR_MSK) {
-#ifdef CONFIG_IWLEGACY_DEBUGFS
+#ifdef CPTCFG_IWLEGACY_DEBUGFS
 		memset(&il->_3945.accum_stats, 0,
 		       sizeof(struct il3945_notif_stats));
 		memset(&il->_3945.delta_stats, 0,
@@ -2379,10 +2379,8 @@ il3945_hw_set_hw_params(struct il_priv *il)
 	il->_3945.shared_virt =
 	    dma_alloc_coherent(&il->pci_dev->dev, sizeof(struct il3945_shared),
 			       &il->_3945.shared_phys, GFP_KERNEL);
-	if (!il->_3945.shared_virt) {
-		IL_ERR("failed to allocate pci memory\n");
+	if (!il->_3945.shared_virt)
 		return -ENOMEM;
-	}
 
 	il->hw_params.bcast_id = IL3945_BROADCAST_ID;
 

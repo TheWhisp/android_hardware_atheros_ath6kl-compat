@@ -158,7 +158,6 @@ struct rfcomm_session {
 	struct timer_list timer;
 	unsigned long    state;
 	unsigned long    flags;
-	atomic_t         refcnt;
 	int              initiator;
 
 	/* Default DLC parameters */
@@ -276,11 +275,6 @@ static inline void rfcomm_dlc_unthrottle(struct rfcomm_dlc *d)
 void   rfcomm_session_getaddr(struct rfcomm_session *s, bdaddr_t *src,
 								bdaddr_t *dst);
 
-static inline void rfcomm_session_hold(struct rfcomm_session *s)
-{
-	atomic_inc(&s->refcnt);
-}
-
 /* ---- RFCOMM sockets ---- */
 struct sockaddr_rc {
 	sa_family_t	rc_family;
@@ -357,7 +351,7 @@ struct rfcomm_dev_list_req {
 
 int  rfcomm_dev_ioctl(struct sock *sk, unsigned int cmd, void __user *arg);
 
-#ifdef CONFIG_COMPAT_BT_RFCOMM_TTY
+#ifdef CPTCFG_BT_RFCOMM_TTY
 int  rfcomm_init_ttys(void);
 void rfcomm_cleanup_ttys(void);
 #else

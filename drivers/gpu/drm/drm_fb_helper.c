@@ -27,11 +27,9 @@
  *      Dave Airlie <airlied@linux.ie>
  *      Jesse Barnes <jesse.barnes@intel.com>
  */
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <linux/kernel.h>
-#include <linux/printk.h>
 #include <linux/sysrq.h>
 #include <linux/slab.h>
 #include <linux/fb.h>
@@ -1400,7 +1398,7 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper)
 	struct drm_mode_set *modeset;
 	bool *enabled;
 	int width, height;
-	int i, ret;
+	int i;
 
 	DRM_DEBUG_KMS("\n");
 
@@ -1421,16 +1419,23 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper)
 
 	drm_enable_connectors(fb_helper, enabled);
 
-	ret = drm_target_cloned(fb_helper, modes, enabled, width, height);
-	if (!ret) {
-		ret = drm_target_preferred(fb_helper, modes, enabled, width, height);
-		if (!ret)
+	if (!(fb_helper->funcs->initial_config &&
+	      fb_helper->funcs->initial_config(fb_helper, crtcs, modes,
+					       enabled, width, height))) {
+		memset(modes, 0, dev->mode_config.num_connector*sizeof(modes[0]));
+		memset(crtcs, 0, dev->mode_config.num_connector*sizeof(crtcs[0]));
+
+		if (!drm_target_cloned(fb_helper,
+				       modes, enabled, width, height) &&
+		    !drm_target_preferred(fb_helper,
+					  modes, enabled, width, height))
 			DRM_ERROR("Unable to find initial modes\n");
+
+		DRM_DEBUG_KMS("picking CRTCs for %dx%d config\n",
+			      width, height);
+
+		drm_pick_crtcs(fb_helper, crtcs, modes, 0, width, height);
 	}
-
-	DRM_DEBUG_KMS("picking CRTCs for %dx%d config\n", width, height);
-
-	drm_pick_crtcs(fb_helper, crtcs, modes, 0, width, height);
 
 	/* need to set the modesets up here for use later */
 	/* fill out the connector<->crtc mappings into the modesets */
@@ -1546,10 +1551,10 @@ int drm_fb_helper_hotplug_event(struct drm_fb_helper *fb_helper)
 	if (!fb_helper->fb)
 		return 0;
 
-	drm_modeset_lock_all(dev);
+	mutex_lock(&fb_helper->dev->mode_config.mutex);
 	if (!drm_fb_helper_is_bound(fb_helper)) {
 		fb_helper->delayed_hotplug = true;
-		drm_modeset_unlock_all(dev);
+		mutex_unlock(&fb_helper->dev->mode_config.mutex);
 		return 0;
 	}
 	DRM_DEBUG_KMS("\n");
@@ -1560,9 +1565,11 @@ int drm_fb_helper_hotplug_event(struct drm_fb_helper *fb_helper)
 
 	count = drm_fb_helper_probe_connector_modes(fb_helper, max_width,
 						    max_height);
+	mutex_unlock(&fb_helper->dev->mode_config.mutex);
+
+	drm_modeset_lock_all(dev);
 	drm_setup_crtcs(fb_helper);
 	drm_modeset_unlock_all(dev);
-
 	drm_fb_helper_set_par(fb_helper->fbdev);
 
 	return 0;
@@ -1573,7 +1580,7 @@ EXPORT_SYMBOL(drm_fb_helper_hotplug_event);
  * but the module doesn't depend on any fb console symbols.  At least
  * attempt to load fbcon to avoid leaving the system without a usable console.
  */
-#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CONFIG_EXPERT)
+#if defined(CONFIG_FRAMEBUFFER_CONSOLE_MODULE) && !defined(CPTCFG_EXPERT)
 static int __init drm_fb_helper_modinit(void)
 {
 	const char *name = "fbcon";

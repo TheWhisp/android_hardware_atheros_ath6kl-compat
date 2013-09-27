@@ -23,12 +23,10 @@
   Reset function and helpers
 \****************************/
 
-#undef pr_fmt
 #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 
 #include <asm/unaligned.h>
 
-#include <linux/printk.h>
 #include <linux/pci.h>		/* To determine if a card is pci-e */
 #include <linux/log2.h>
 #include <linux/platform_device.h>
@@ -986,9 +984,7 @@ ath5k_hw_commit_eeprom_settings(struct ath5k_hw *ah,
 	if (ah->ah_version == AR5K_AR5210)
 		return;
 
-	ee_mode = ath5k_eeprom_mode_from_channel(channel);
-	if (WARN_ON(ee_mode < 0))
-		return;
+	ee_mode = ath5k_eeprom_mode_from_channel(ah, channel);
 
 	/* Adjust power delta for channel 14 */
 	if (channel->center_freq == 2484)

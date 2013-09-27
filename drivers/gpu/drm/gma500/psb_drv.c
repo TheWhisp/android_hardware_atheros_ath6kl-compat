@@ -48,7 +48,7 @@ module_param_named(trap_pagefaults, drm_psb_trap_pagefaults, int, 0600);
 static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
 	{ 0x8086, 0x8108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &psb_chip_ops },
 	{ 0x8086, 0x8109, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &psb_chip_ops },
-#if defined(CONFIG_DRM_GMA600)
+#if defined(CPTCFG_DRM_GMA600)
 	{ 0x8086, 0x4100, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &oaktrail_chip_ops},
 	{ 0x8086, 0x4101, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &oaktrail_chip_ops},
 	{ 0x8086, 0x4102, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &oaktrail_chip_ops},
@@ -60,7 +60,7 @@ static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
 	/* Atom E620 */
 	{ 0x8086, 0x4108, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &oaktrail_chip_ops},
 #endif
-#if defined(CONFIG_DRM_MEDFIELD)
+#if defined(CPTCFG_DRM_MEDFIELD)
 	{0x8086, 0x0130, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &mdfld_chip_ops},
 	{0x8086, 0x0131, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &mdfld_chip_ops},
 	{0x8086, 0x0132, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &mdfld_chip_ops},
@@ -70,7 +70,7 @@ static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
 	{0x8086, 0x0136, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &mdfld_chip_ops},
 	{0x8086, 0x0137, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &mdfld_chip_ops},
 #endif
-#if defined(CONFIG_DRM_GMA3600)
+#if defined(CPTCFG_DRM_GMA3600)
 	{ 0x8086, 0x0be0, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &cdv_chip_ops},
 	{ 0x8086, 0x0be1, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &cdv_chip_ops},
 	{ 0x8086, 0x0be2, PCI_ANY_ID, PCI_ANY_ID, 0, 0, (long) &cdv_chip_ops},
@@ -601,6 +601,9 @@ static void psb_remove(struct pci_dev *pdev)
 static const struct dev_pm_ops psb_pm_ops = {
 	.resume = gma_power_resume,
 	.suspend = gma_power_suspend,
+	.thaw = gma_power_thaw,
+	.freeze = gma_power_freeze,
+	.restore = gma_power_restore,
 	.runtime_suspend = psb_runtime_suspend,
 	.runtime_resume = psb_runtime_resume,
 	.runtime_idle = psb_runtime_idle,
