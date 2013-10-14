@@ -950,6 +950,7 @@ void ath6kl_core_rx_complete(struct ath6kl *ar, struct sk_buff *skb, u8 pipe);
 
 struct ath6kl *ath6kl_core_create(struct device *dev);
 int ath6kl_core_init(struct ath6kl *ar, enum ath6kl_htc_type htc_type);
+void ath6kl_mangle_mac_address(struct ath6kl *ar, u8 locally_administered_bit);
 void ath6kl_core_cleanup(struct ath6kl *ar);
 void ath6kl_core_destroy(struct ath6kl *ar);
 

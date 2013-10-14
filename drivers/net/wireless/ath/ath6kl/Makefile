@@ -36,6 +36,7 @@ ath6kl-y += wmi.o
 ath6kl-y += core.o
 ath6kl-y += recovery.o
 ath6kl-y += sdio.o
+ath6kl-y += softmac.o
 
 ath6kl-$(CPTCFG_NL80211_TESTMODE) += testmode.o
 ath6kl-$(CPTCFG_ATH6KL_TRACING) += trace.o
