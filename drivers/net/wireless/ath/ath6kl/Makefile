@@ -41,11 +41,7 @@ ath6kl-y += softmac.o
 ath6kl-$(CPTCFG_NL80211_TESTMODE) += testmode.o
 ath6kl-$(CPTCFG_ATH6KL_TRACING) += trace.o
 
-#obj-$(CPTCFG_ATH6KL_SDIO) += ath6kl_sdio.o
-#ath6kl_sdio-y += sdio.o
-
-#obj-$(CPTCFG_ATH6KL_USB) += ath6kl_usb.o
-#ath6kl_usb-y += usb.o
+ccflags-y += -DCONFIG_MACH_JENA
 
 # for tracing framework to find trace.h
 CFLAGS_trace.o := -I$(src)
